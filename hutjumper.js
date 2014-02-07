@@ -9,7 +9,13 @@ var FPS = 3;
 var CANVAS_WIDTH = 800;
 var CANVAS_HEIGHT = 600;
 var canvas;
+var ball;
 var lastTime = 0;
+
+var BACKGROUND_TILE = new Image();
+BACKGROUND_TILE.src = "./grass.png";
+var BUNNY_IMG = new Image();
+BUNNY_IMG.src = "./bunny.png";
 
 var position = {
     x: 50,
@@ -68,7 +74,7 @@ function Vector(x, y) {
 /*========Ball Class========*/
 function Ball(x, y, radius, color) {
 	if (!color) {
-		color = getRandomColor();
+		color = "#000000";
 	}
 	
 	this.position = new Vector(x,y);
@@ -76,7 +82,7 @@ function Ball(x, y, radius, color) {
 	this.mass = 1;
 
 	this.velocity = new Vector();
-	this.acceleration = Constants.gravitation;
+	this.acceleration = new Vector();
 	
 	this.color = color;
 	
@@ -194,23 +200,85 @@ function getCanvasY(event) {
 
 var update = function(delta) {
     //TODO
-    position.x = Math.random() * CANVAS_WIDTH;
-    position.y = Math.random() * CANVAS_HEIGHT;
+    ball.position.x = ball.position.x + ball.velocity.x;
+    ball.position.y = ball.position.y + ball.velocity.y;
 };
 
-var render = function() {
-    canvas.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    //TODO
-    canvas.fillStyle = "#000"; // Set color to black
-    canvas.fillText("Sup Broseph!", position.x, position.y);
+var renderBackground = function(context) {
+	context.fillStyle = context.createPattern(BACKGROUND_TILE, "repeat");
+	context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+	//context.drawImage(BACKGROUND_TILE, -position.x, -position.y);
+}
+
+var renderBall = function(context, ball) {
+	var x = ball.position.x;
+	var y = ball.position.y;
+	
+	context.drawImage(BUNNY_IMG, x, y, BUNNY_IMG.width/4, BUNNY_IMG.height/4);
+	
+	// context.fillStyle = context.createPattern(BUNNY_IMG, "no-repeat");
+	// context.fillRect(x, y, );
+	// var radius = ball.radius;
+	// var startAngle = 0;
+	// var endAngle = 2*Math.PI;
+	// var clockwise = true;
+	// var oldFill = context.fillStyle;
+	// context.fillStyle = ball.color;
+	// context.strokeStyle = "black";
+	// context.beginPath();
+	// context.arc(x, y, radius, startAngle, endAngle, clockwise);
+	// context.closePath();
+	// context.fill();
+	// context.stroke();
+	
+}
+
+function render(context) {
+    context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+	renderBackground(context);
+	renderBall(context, ball);
+    
+	//TODO
+    //context.fillStyle = "#000"; // Set color to black
+    //context.fillText("Sup Broseph!", position.x, position.y);
 };
+
+function handleKeypress(event) {
+	var x;
+	var y;
+	var speed = 1;
+	if (event.keyCode == 38)
+    {
+        y -= speed; //going up
+    }
+    if (event.keyCode == 40)
+    {
+        y += speed; //going down
+    }
+    if (event.keyCode == 37)
+    {
+        x -= speed; //going left
+    }
+    if (event.keyCode == 39)
+    {
+        x += speed; //going right
+    }
+	var velocity = new Vector(x, y);
+	alert(velocity);
+	ball.setVelocity(velocity);
+}
 
 window.onload = function() {
-    canvas = document.getElementById('mainCanvas').getContext("2d");
-    setInterval(function(){
+    ball = new Ball(position.x, position.y, 5, "#FF0000");
+    canvas = document.getElementById('mainCanvas');
+	
+	canvas.addEventListener("keypress", handleKeypress);
+	
+	var context = canvas.getContext("2d");
+	setInterval(function(){
         var time = new Date().getTime();
         var delta = (lastTime ? (lastTime - time) : 0);
         update(delta);
-        render();
+        render(context);
     }, 1000/FPS);
 };
