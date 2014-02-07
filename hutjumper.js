@@ -5,13 +5,19 @@
  * @author Vahnatai
  */
 
-var FPS = 60;
+var FPS = 120;
 var CANVAS_WIDTH = 800;
 var CANVAS_HEIGHT = 600;
 var canvas;
 var ball;
 var lastTime = 0;
 
+var KEYS = {
+    up: false,
+    down: false,
+    left: false,
+    right: false
+};
 var KEY_UP = 38;
 var KEY_DOWN = 40;
 var KEY_LEFT = 37;
@@ -23,11 +29,6 @@ var BACKGROUND_TILE = new Image();
 BACKGROUND_TILE.src = "./grass.png";
 var BUNNY_IMG = new Image();
 BUNNY_IMG.src = "./bunny.png";
-
-var position = {
-    x: 50,
-    y: 50
-};
 
 var GRAV_EARTH = new Vector(0, 9.81);
 
@@ -187,6 +188,21 @@ function Ball(x, y, radius, color) {
 	};
 }
 
+/*========World Class========*/
+function World() {
+    this.data = [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0]]
+}
+
 function getCanvasX(event) {
 	// Get the mouse position relative to the canvas element.
 	if (event.offsetX || event.offsetX == 0) {
@@ -205,80 +221,70 @@ function getCanvasY(event) {
 	} 
 }
 
+function applyControls() {
+    var ADD_VALUE = 0.5;
+    ball.acceleration.y = (KEYS.down - KEYS.up) * ADD_VALUE; //going up/down
+    ball.acceleration.x = (KEYS.right - KEYS.left) * ADD_VALUE; //going up/down
+}
+
 
 var update = function(delta) {
     //TODO
+    applyControls();
     ball.stepPosition();
     ball.stepVelocity();
 };
 
 var renderBackground = function(context) {
-	context.fillStyle = context.createPattern(BACKGROUND_TILE, "repeat");
-	context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-	//context.drawImage(BACKGROUND_TILE, -position.x, -position.y);
+    //static char, moving bg
+    context.save();
+    context.fillStyle = context.createPattern(BACKGROUND_TILE, "repeat");
+    context.translate(-ball.position.x, -ball.position.y);
+    context.fillRect(ball.position.x, ball.position.y, CANVAS_WIDTH, CANVAS_HEIGHT);
+    context.restore();
 }
 
 var renderBall = function(context, ball) {
-	var x = ball.position.x;
-	var y = ball.position.y;
-	
-	context.drawImage(BUNNY_IMG, x, y, BUNNY_IMG.width/4, BUNNY_IMG.height/4);
-	
-	// context.fillStyle = context.createPattern(BUNNY_IMG, "no-repeat");
-	// context.fillRect(x, y, );
-	// var radius = ball.radius;
-	// var startAngle = 0;
-	// var endAngle = 2*Math.PI;
-	// var clockwise = true;
-	// var oldFill = context.fillStyle;
-	// context.fillStyle = ball.color;
-	// context.strokeStyle = "black";
-	// context.beginPath();
-	// context.arc(x, y, radius, startAngle, endAngle, clockwise);
-	// context.closePath();
-	// context.fill();
-	// context.stroke();
-	
+    //static char, moving bg
+	context.drawImage(BUNNY_IMG, CANVAS_WIDTH/2 - BUNNY_IMG.width/8, CANVAS_HEIGHT/2 - BUNNY_IMG.height/8,
+        BUNNY_IMG.width/4, BUNNY_IMG.height/4);
 }
 
 function render(context) {
     context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 	renderBackground(context);
 	renderBall(context, ball);
-    
 	//TODO
-    //context.fillStyle = "#000"; // Set color to black
-    //context.fillText("Sup Broseph!", position.x, position.y);
 };
 
 function handleKeyup(event) {
-	if ((event.keyCode == KEY_UP)||(event.keyCode == KEY_DOWN)) {
-        ball.velocity.y -= ball.acceleration.y;
-        ball.acceleration.y = 0; //stop going up/down
-    } else if ((event.keyCode == KEY_LEFT)||(event.keyCode == KEY_RIGHT)) {
-        ball.velocity.x -= ball.acceleration.x; 
-        ball.acceleration.x = 0; //stop going left/right
+	//update which keys are not pressed
+	if (event.keyCode == KEY_UP) {
+        KEYS.up = false;
+    } else if (event.keyCode == KEY_DOWN) {
+        KEYS.down = false;
+    } else if (event.keyCode == KEY_LEFT) {
+        KEYS.left = false;
+    } else if (event.keyCode == KEY_RIGHT) {
+        KEYS.right = false;
     }
 }
 
 function handleKeydown(event) {
-	var ADD_VALUE = 0.5;
+    //update which keys are pressed
 	if (event.keyCode == KEY_UP) {
-        ball.acceleration.y = -ADD_VALUE; //going up
-    }
-    if (event.keyCode == KEY_DOWN) {
-        ball.acceleration.y = ADD_VALUE; //going down
-    }
-    if (event.keyCode == KEY_LEFT) {
-        ball.acceleration.x = -ADD_VALUE; //going left
-    }
-    if (event.keyCode == KEY_RIGHT) {
-        ball.acceleration.x = ADD_VALUE; //going right
+        KEYS.up = true;
+    } else if (event.keyCode == KEY_DOWN) {
+        KEYS.down = true;
+    } else if (event.keyCode == KEY_LEFT) {
+        KEYS.left = true;
+    } else if (event.keyCode == KEY_RIGHT) {
+        KEYS.right = true;
     }
 }
 
 window.onload = function() {
-    ball = new Ball(position.x, position.y, 5, "#FF0000");
+    ball = new Ball(0, 0, 5, "#FF0000");
     canvas = document.getElementById('mainCanvas');
 	
     // set up keyboard input listeners
