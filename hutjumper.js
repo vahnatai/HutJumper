@@ -5,12 +5,19 @@
  * @author Vahnatai
  */
 
-var FPS = 3;
+var FPS = 60;
 var CANVAS_WIDTH = 800;
 var CANVAS_HEIGHT = 600;
 var canvas;
 var ball;
 var lastTime = 0;
+
+var KEY_UP = 38;
+var KEY_DOWN = 40;
+var KEY_LEFT = 37;
+var KEY_RIGHT = 39;
+
+var FRICTION_C = 0.15;
 
 var BACKGROUND_TILE = new Image();
 BACKGROUND_TILE.src = "./grass.png";
@@ -92,10 +99,11 @@ function Ball(x, y, radius, color) {
 
 	this.stepVelocity = function() {
 		var changed = false;
-		if (this.acceleration.getLength()) {
-			this.velocity = this.velocity.add(this.acceleration);
-		}
-		return changed;
+        var friction = this.velocity.multiplyScalar(FRICTION_C);
+        if (friction.getLength()) {
+            //alert("friction is " + friction.x + ", acceleration is " + this.acceleration.x);
+        }
+		this.velocity = this.velocity.add(this.acceleration).subtract(friction);
 	};
 	
 	this.stepPosition = function() {
@@ -200,8 +208,8 @@ function getCanvasY(event) {
 
 var update = function(delta) {
     //TODO
-    ball.position.x = ball.position.x + ball.velocity.x;
-    ball.position.y = ball.position.y + ball.velocity.y;
+    ball.stepPosition();
+    ball.stepVelocity();
 };
 
 var renderBackground = function(context) {
@@ -243,39 +251,42 @@ function render(context) {
     //context.fillText("Sup Broseph!", position.x, position.y);
 };
 
-function handleKeypress(event) {
-	var x;
-	var y;
-	var speed = 1;
-	if (event.keyCode == 38)
-    {
-        y -= speed; //going up
+function handleKeyup(event) {
+	if ((event.keyCode == KEY_UP)||(event.keyCode == KEY_DOWN)) {
+        ball.velocity.y -= ball.acceleration.y;
+        ball.acceleration.y = 0; //stop going up/down
+    } else if ((event.keyCode == KEY_LEFT)||(event.keyCode == KEY_RIGHT)) {
+        ball.velocity.x -= ball.acceleration.x; 
+        ball.acceleration.x = 0; //stop going left/right
     }
-    if (event.keyCode == 40)
-    {
-        y += speed; //going down
+}
+
+function handleKeydown(event) {
+	var ADD_VALUE = 0.5;
+	if (event.keyCode == KEY_UP) {
+        ball.acceleration.y = -ADD_VALUE; //going up
     }
-    if (event.keyCode == 37)
-    {
-        x -= speed; //going left
+    if (event.keyCode == KEY_DOWN) {
+        ball.acceleration.y = ADD_VALUE; //going down
     }
-    if (event.keyCode == 39)
-    {
-        x += speed; //going right
+    if (event.keyCode == KEY_LEFT) {
+        ball.acceleration.x = -ADD_VALUE; //going left
     }
-	var velocity = new Vector(x, y);
-	alert(velocity);
-	ball.setVelocity(velocity);
+    if (event.keyCode == KEY_RIGHT) {
+        ball.acceleration.x = ADD_VALUE; //going right
+    }
 }
 
 window.onload = function() {
     ball = new Ball(position.x, position.y, 5, "#FF0000");
     canvas = document.getElementById('mainCanvas');
 	
-	canvas.addEventListener("keypress", handleKeypress);
+    // set up keyboard input listeners
+	document.addEventListener("keydown", handleKeydown);
+	document.addEventListener("keyup", handleKeyup);
 	
 	var context = canvas.getContext("2d");
-	setInterval(function(){
+	setInterval(function() {
         var time = new Date().getTime();
         var delta = (lastTime ? (lastTime - time) : 0);
         update(delta);
