@@ -10,6 +10,7 @@ var CANVAS_WIDTH = 800;
 var CANVAS_HEIGHT = 600;
 var canvas;
 var ball;
+var world;
 var lastTime = 0;
 
 var KEYS = {
@@ -107,13 +108,24 @@ function Ball(x, y, radius, color) {
 		this.velocity = this.velocity.add(this.acceleration).subtract(friction);
 	};
 	
+    /**
+     * XXX maybe this function should be moved out of the ball class,
+     * to World or some game logic elsewhere?
+     */
 	this.stepPosition = function() {
 		var changed = false;
 		if (this.velocity.getLength()) {
-			this.position = this.position.add(this.velocity);
-			changed = true;
+			var newPos = this.position.add(this.velocity);
+            var minX = world.getMinX();
+            var maxX = world.getMaxX();
+            var minY = world.getMinY();
+            var maxY = world.getMaxY();
+            if (newPos.x < minX) {newPos.x = minX;}
+            if (newPos.y < minY) {newPos.y = minY;}
+            if (newPos.x > maxX) {newPos.x = maxX;}
+            if (newPos.y > maxY) {newPos.y = maxY;}
+            this.position = newPos;
 		}
-		return changed;
 	};
 	
 	this.isColliding = function(that) {
@@ -190,6 +202,8 @@ function Ball(x, y, radius, color) {
 
 /*========World Class========*/
 function World() {
+    var CELL_WIDTH_PX = 50;
+    var CELL_HEIGHT_PX = 50;
     this.data = [
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -201,6 +215,20 @@ function World() {
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
         [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0]]
+    
+    this.getMinX = function() {
+        return 0;
+    }
+    this.getMaxX = function() {
+        return this.data[0].length * CELL_WIDTH_PX;
+    }
+    this.getMinY = function() {
+        return 0;
+    }
+    this.getMaxY = function() {
+        return this.data.length * CELL_WIDTH_PX;
+    }
+    
 }
 
 function getCanvasX(event) {
@@ -228,15 +256,17 @@ function applyControls() {
 }
 
 
-var update = function(delta) {
+function update(delta) {
     //TODO
     applyControls();
     ball.stepPosition();
     ball.stepVelocity();
 };
 
-var renderBackground = function(context) {
-    //static char, moving bg
+function renderBackground(context) {
+    // static char, moving bg
+    // translate before fill to offset the pattern,
+    // then restore position
     context.save();
     context.fillStyle = context.createPattern(BACKGROUND_TILE, "repeat");
     context.translate(-ball.position.x, -ball.position.y);
@@ -244,16 +274,33 @@ var renderBackground = function(context) {
     context.restore();
 }
 
-var renderBall = function(context, ball) {
+function renderForeground(context) {
+    //TODO
+}
+
+function renderBall(context, ball) {
     //static char, moving bg
 	context.drawImage(BUNNY_IMG, CANVAS_WIDTH/2 - BUNNY_IMG.width/8, CANVAS_HEIGHT/2 - BUNNY_IMG.height/8,
         BUNNY_IMG.width/4, BUNNY_IMG.height/4);
 }
 
+function renderHUD(context) {
+    //TODO
+    var x = Math.round(ball.position.x);
+    var y = Math.round(ball.position.y);
+    context.font="20px Arial";
+    context.fillStyle = "#000000";
+    context.strokeText("x: " + x + ", y: " + y, 20, 20);
+    context.fillStyle = "#FFFFFF";
+    context.fillText("x: " + x + ", y: " + y, 20, 20);
+}
+
 function render(context) {
-    context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    //context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 	renderBackground(context);
+    renderForeground(context);
 	renderBall(context, ball);
+    renderHUD(context);
 	//TODO
 };
 
@@ -283,10 +330,29 @@ function handleKeydown(event) {
     }
 }
 
+function exampleLoadJSON() {
+    var xmlhttp;
+    if (window.XMLHttpRequest) {
+        // code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp = new XMLHttpRequest();
+    } else {
+        // code for IE6, IE5
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            //TODO something with JSON.parse(req.responseText)
+        }
+    }
+    xmlhttp.open("GET", "ajax_info.txt", true);
+    xmlhttp.send();
+}
+
 window.onload = function() {
     ball = new Ball(0, 0, 5, "#FF0000");
     canvas = document.getElementById('mainCanvas');
-	
+	world = new World();
+    
     // set up keyboard input listeners
 	document.addEventListener("keydown", handleKeydown);
 	document.addEventListener("keyup", handleKeyup);
