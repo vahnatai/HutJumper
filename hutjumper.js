@@ -272,9 +272,7 @@ function renderBackground(context) {
     // then restore position
     context.save();
     context.fillStyle = context.createPattern(BACKGROUND_TILE, "repeat");
-    // context.translate(-ball.position.x, -ball.position.y);
     context.translate(-x, -y);
-    // context.fillRect(ball.position.x, ball.position.y, CANVAS_WIDTH, CANVAS_HEIGHT);
     context.fillRect(x, y, CANVAS_WIDTH, CANVAS_HEIGHT);
     context.restore();
 }
@@ -293,11 +291,14 @@ function renderHUD(context) {
     //TODO
     var x = Math.round(ball.position.x);
     var y = Math.round(ball.position.y);
+    context.save();
     context.font="20px Arial";
+    context.globalAlpha = 0.7;
     context.fillStyle = "#000000";
     context.strokeText("x: " + x + ", y: " + y, 20, 20);
     context.fillStyle = "#FFFFFF";
     context.fillText("x: " + x + ", y: " + y, 20, 20);
+    context.restore();
 }
 
 function render(context) {
