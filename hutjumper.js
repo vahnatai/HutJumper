@@ -33,13 +33,12 @@ var KEYS = {
 };
 
 var FRICTION_C = 0.15;
+var GRAV_EARTH = new Vector(0, 9.81);//to be used
 
 var BACKGROUND_TILE = new Image();
 BACKGROUND_TILE.src = "./grass.png";
 var BUNNY_IMG = new Image();
 BUNNY_IMG.src = "./bunny.png";
-
-var GRAV_EARTH = new Vector(0, 9.81);
 
 /*========Vector Class========*/
 function Vector(x, y) {
