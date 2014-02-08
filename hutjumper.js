@@ -264,13 +264,18 @@ function update(delta) {
 };
 
 function renderBackground(context) {
+    // round because pixels are discrete units; not rounding makes the image fuzzy
+    var x = Math.round(ball.position.x);
+    var y = Math.round(ball.position.y);
     // static char, moving bg
     // translate before fill to offset the pattern,
     // then restore position
     context.save();
     context.fillStyle = context.createPattern(BACKGROUND_TILE, "repeat");
-    context.translate(-ball.position.x, -ball.position.y);
-    context.fillRect(ball.position.x, ball.position.y, CANVAS_WIDTH, CANVAS_HEIGHT);
+    // context.translate(-ball.position.x, -ball.position.y);
+    context.translate(-x, -y);
+    // context.fillRect(ball.position.x, ball.position.y, CANVAS_WIDTH, CANVAS_HEIGHT);
+    context.fillRect(x, y, CANVAS_WIDTH, CANVAS_HEIGHT);
     context.restore();
 }
 
