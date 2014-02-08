@@ -14,15 +14,23 @@ var world;
 var lastTime = 0;
 
 var KEYS = {
-    up: false,
-    down: false,
-    left: false,
-    right: false
+    up: {
+        keycode: 38,
+        pressed: false
+    },
+    down: {
+        keycode: 40,
+        pressed: false
+    },
+    left: {
+        keycode: 37,
+        pressed: false
+    },
+    right: {
+        keycode: 39,
+        pressed: false
+    }
 };
-var KEY_UP = 38;
-var KEY_DOWN = 40;
-var KEY_LEFT = 37;
-var KEY_RIGHT = 39;
 
 var FRICTION_C = 0.15;
 
@@ -251,8 +259,8 @@ function getCanvasY(event) {
 
 function applyControls() {
     var ADD_VALUE = 0.5;
-    ball.acceleration.y = (KEYS.down - KEYS.up) * ADD_VALUE; //going up/down
-    ball.acceleration.x = (KEYS.right - KEYS.left) * ADD_VALUE; //going up/down
+    ball.acceleration.y = (KEYS.down.pressed - KEYS.up.pressed) * ADD_VALUE; //going up/down
+    ball.acceleration.x = (KEYS.right.pressed - KEYS.left.pressed) * ADD_VALUE; //going up/down
 }
 
 
@@ -311,28 +319,24 @@ function render(context) {
 };
 
 function handleKeyup(event) {
-	//update which keys are not pressed
-	if (event.keyCode == KEY_UP) {
-        KEYS.up = false;
-    } else if (event.keyCode == KEY_DOWN) {
-        KEYS.down = false;
-    } else if (event.keyCode == KEY_LEFT) {
-        KEYS.left = false;
-    } else if (event.keyCode == KEY_RIGHT) {
-        KEYS.right = false;
+	//update which key is now not pressed
+    for (k in KEYS) {
+        var key = KEYS[k];
+        if (event.keyCode == key.keycode) {
+            key.pressed = false;
+            break;
+        }
     }
 }
 
 function handleKeydown(event) {
-    //update which keys are pressed
-	if (event.keyCode == KEY_UP) {
-        KEYS.up = true;
-    } else if (event.keyCode == KEY_DOWN) {
-        KEYS.down = true;
-    } else if (event.keyCode == KEY_LEFT) {
-        KEYS.left = true;
-    } else if (event.keyCode == KEY_RIGHT) {
-        KEYS.right = true;
+    //update which key is now pressed
+    for (k in KEYS) {
+        var key = KEYS[k];
+        if (event.keyCode == key.keycode) {
+            key.pressed = true;
+            break;
+        }
     }
 }
 
