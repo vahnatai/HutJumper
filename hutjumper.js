@@ -29,10 +29,15 @@ var KEYS = {
     right: {
         keycode: 39,
         pressed: false
+    },
+    space: {
+        keycode: 32,
+        pressed: false
     }
 };
 
 var FRICTION_C = 0.15;
+var RESTITUTION = 0.75;
 var GRAV_EARTH = new Vector(0, 9.81);//to be used
 
 var BACKGROUND_TILE = new Image();
@@ -122,16 +127,8 @@ function Ball(x, y, radius, color) {
 	this.stepPosition = function() {
 		var changed = false;
 		if (this.velocity.getLength()) {
-			var newPos = this.position.add(this.velocity);
-            var minX = world.getMinX();
-            var maxX = world.getMaxX();
-            var minY = world.getMinY();
-            var maxY = world.getMaxY();
-            if (newPos.x < minX) {newPos.x = minX;}
-            if (newPos.y < minY) {newPos.y = minY;}
-            if (newPos.x > maxX) {newPos.x = maxX;}
-            if (newPos.y > maxY) {newPos.y = maxY;}
-            this.position = newPos;
+            //XXX
+			this.position = this.position.add(this.velocity);
 		}
 	};
 	
@@ -177,7 +174,7 @@ function Ball(x, y, radius, color) {
 	    }
 	    //alert("Bump2: " + vn);
 	    // collision impulse
-	    var i = (-(1.0 + Constants.restitution) * vn) / (im1 + im2);
+	    var i = (-(1.0 + RESTITUTION) * vn) / (im1 + im2);
 	    var impulse = mtd.normalized().multiplyScalar(i);
 
 	    // change in momentum
@@ -186,23 +183,28 @@ function Ball(x, y, radius, color) {
 	};
 	
 	this.collideBounds = function() {
-		if ((this.position.x - this.radius <= 0) 
+        var minX = world.getMinX();
+        var maxX = world.getMaxX();
+        var minY = world.getMinY();
+        var maxY = world.getMaxY();
+    
+		if ((this.position.x - this.radius <= minX) 
 				&& (this.velocity.x < 0)) { 
-			this.velocity.x = -this.velocity.x * Constants.restitution;
-			this.position.x = 0 + this.radius; 
-		} else if ((this.position.x + this.radius >= width)
+			this.velocity.x = -this.velocity.x * RESTITUTION;
+			this.position.x = minX + this.radius; 
+		} else if ((this.position.x + this.radius >= maxX)
 				&& (this.velocity.x > 0) ) {
-			this.velocity.x = -this.velocity.x * Constants.restitution;
-			this.position.x = width - this.radius;
+			this.velocity.x = -this.velocity.x * RESTITUTION;
+			this.position.x = maxX - this.radius;
 		}
-		if (this.position.y - this.radius <= 0
+		if (this.position.y - this.radius <= minY
 				&& (this.velocity.y < 0) ) {
-			this.velocity.y = -this.velocity.y * Constants.restitution;
-			this.position.y = 0 + this.radius;
-		} else if (this.position.y + this.radius >= height
+			this.velocity.y = -this.velocity.y * RESTITUTION;
+			this.position.y = minY + this.radius;
+		} else if (this.position.y + this.radius >= maxY
 				&& (this.velocity.y > 0) ) {
-			this.velocity.y = -this.velocity.y * Constants.restitution;
-			this.position.y = height - this.radius;
+			this.velocity.y = -this.velocity.y * RESTITUTION;
+			this.position.y = maxY - this.radius;
 		}
 	};
 }
@@ -257,9 +259,16 @@ function getCanvasY(event) {
 }
 
 function applyControls() {
-    var ADD_VALUE = 0.5;
-    ball.acceleration.y = (KEYS.down.pressed - KEYS.up.pressed) * ADD_VALUE; //going up/down
-    ball.acceleration.x = (KEYS.right.pressed - KEYS.left.pressed) * ADD_VALUE; //going up/down
+    var CONTROL_FORCE = .5;
+    var controlV = new Vector(
+        (KEYS.right.pressed - KEYS.left.pressed) * CONTROL_FORCE,
+        (KEYS.down.pressed - KEYS.up.pressed) * CONTROL_FORCE);
+    
+    if (KEYS.space.pressed) {
+        controlV = controlV.add(new Vector(0, -150));
+    }
+    
+    ball.setAcceleration(controlV.add(GRAV_EARTH));
 }
 
 
@@ -267,6 +276,7 @@ function update(delta) {
     //TODO
     applyControls();
     ball.stepPosition();
+    ball.collideBounds();
     ball.stepVelocity();
 };
 
