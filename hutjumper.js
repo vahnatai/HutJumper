@@ -5,7 +5,7 @@
  * @author Vahnatai
  */
 
-var FPS = 120;
+var FPS = 60;
 var CANVAS_WIDTH = 800;
 var CANVAS_HEIGHT = 600;
 var canvas;
@@ -38,7 +38,7 @@ var KEYS = {
 
 var FRICTION_C = 0.15;
 var RESTITUTION = 0.75;
-var GRAV_EARTH = new Vector(0, 9.81);//to be used
+var GRAV_EARTH = new Vector(0, 9.81);
 
 var BACKGROUND_TILE = new Image();
 BACKGROUND_TILE.src = "./grass.png";
@@ -259,13 +259,13 @@ function getCanvasY(event) {
 }
 
 function applyControls() {
-    var CONTROL_FORCE = .5;
+    var CONTROL_FORCE = 1;
     var controlV = new Vector(
         (KEYS.right.pressed - KEYS.left.pressed) * CONTROL_FORCE,
         (KEYS.down.pressed - KEYS.up.pressed) * CONTROL_FORCE);
     
     if (KEYS.space.pressed) {
-        controlV = controlV.add(new Vector(0, -150));
+        controlV = controlV.add(new Vector(0, -50));
     }
     
     ball.setAcceleration(controlV.add(GRAV_EARTH));
@@ -295,7 +295,23 @@ function renderBackground(context) {
 }
 
 function renderForeground(context) {
-    //TODO
+    //if they are visible from this position, render bounds
+	if (ball.position.x - CANVAS_WIDTH/2 <= world.getMinX()) {
+		context.fillStyle = "#111111";
+		context.fillRect(world.getMinX() - ball.position.x, 0, CANVAS_WIDTH/2, CANVAS_HEIGHT);
+	}
+	if (ball.position.x + CANVAS_WIDTH/2 >= world.getMaxX()) {
+		context.fillStyle = "#111111";
+		context.fillRect(world.getMaxX() - ball.position.x + CANVAS_WIDTH/2, 0, CANVAS_WIDTH/2, CANVAS_HEIGHT);
+	}
+	if (ball.position.y - CANVAS_HEIGHT/2 <= world.getMinY()) {
+		context.fillStyle = "#111111";
+		context.fillRect(0, world.getMinY() - ball.position.y, CANVAS_WIDTH, CANVAS_HEIGHT/2);
+	}
+	if (ball.position.y + CANVAS_WIDTH/2 >= world.getMaxY()) {
+		context.fillStyle = "#111111";
+		context.fillRect(0, world.getMaxY() - ball.position.y + CANVAS_HEIGHT/2, CANVAS_WIDTH, CANVAS_HEIGHT/2);
+	}
 }
 
 function renderBall(context, ball) {
@@ -305,16 +321,20 @@ function renderBall(context, ball) {
 }
 
 function renderHUD(context) {
-    //TODO
     var x = Math.round(ball.position.x);
     var y = Math.round(ball.position.y);
+    var velX = Math.round(ball.velocity.x);
+    var velY = Math.round(ball.velocity.y);
+    var accX = Math.round(ball.acceleration.x);
+    var accY = Math.round(ball.acceleration.y);
+	
     context.save();
-    context.font="20px Arial";
+    context.font = "20px Arial";
     context.globalAlpha = 0.7;
-    context.fillStyle = "#000000";
-    context.strokeText("x: " + x + ", y: " + y, 20, 20);
     context.fillStyle = "#FFFFFF";
     context.fillText("x: " + x + ", y: " + y, 20, 20);
+    context.fillText("velX: " + velX + ", velY: " + velY, 20, 50);
+    context.fillText("accX: " + accX + ", accY: " + accY, 20, 80);
     context.restore();
 }
 
@@ -331,7 +351,7 @@ function handleKeyup(event) {
 	//update which key is now not pressed
     for (k in KEYS) {
         var key = KEYS[k];
-        if (event.keyCode == key.keycode) {
+        if (event.keyCode === key.keycode) {
             key.pressed = false;
             break;
         }
@@ -342,7 +362,7 @@ function handleKeydown(event) {
     //update which key is now pressed
     for (k in KEYS) {
         var key = KEYS[k];
-        if (event.keyCode == key.keycode) {
+        if (event.keyCode === key.keycode) {
             key.pressed = true;
             break;
         }
@@ -350,21 +370,21 @@ function handleKeydown(event) {
 }
 
 function exampleLoadJSON() {
-    var xmlhttp;
+    var request;
     if (window.XMLHttpRequest) {
         // code for IE7+, Firefox, Chrome, Opera, Safari
-        xmlhttp = new XMLHttpRequest();
+        request = new XMLHttpRequest();
     } else {
         // code for IE6, IE5
-        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        request = new ActiveXObject("Microsoft.XMLHTTP");
     }
-    xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200) {
             //TODO something with JSON.parse(req.responseText)
         }
     }
-    xmlhttp.open("GET", "ajax_info.txt", true);
-    xmlhttp.send();
+    request.open("GET", "ajax_info.txt", true);
+    request.send();
 }
 
 window.onload = function() {
