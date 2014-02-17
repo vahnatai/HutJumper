@@ -6,6 +6,7 @@
  */
 
 var FPS = 60;
+var BOUNDS_COLOR = "#111111";
 var CANVAS_WIDTH = 800;
 var CANVAS_HEIGHT = 600;
 var canvas;
@@ -130,6 +131,10 @@ function Ball(x, y, radius, color) {
             //XXX
 			this.position = this.position.add(this.velocity);
 		}
+	};
+	
+	this.isOnGround = function() {
+		return this.position.y + this.radius >= world.getMaxY();
 	};
 	
 	this.isColliding = function(that) {
@@ -264,7 +269,7 @@ function applyControls() {
         (KEYS.right.pressed - KEYS.left.pressed) * CONTROL_FORCE,
         (KEYS.down.pressed - KEYS.up.pressed) * CONTROL_FORCE);
     
-    if (KEYS.space.pressed) {
+    if (KEYS.space.pressed && ball.isOnGround()) {
         controlV = controlV.add(new Vector(0, -50));
     }
     
@@ -297,19 +302,19 @@ function renderBackground(context) {
 function renderForeground(context) {
     //if they are visible from this position, render bounds
 	if (ball.position.x - CANVAS_WIDTH/2 <= world.getMinX()) {
-		context.fillStyle = "#111111";
+		context.fillStyle = BOUNDS_COLOR;
 		context.fillRect(world.getMinX() - ball.position.x, 0, CANVAS_WIDTH/2, CANVAS_HEIGHT);
 	}
 	if (ball.position.x + CANVAS_WIDTH/2 >= world.getMaxX()) {
-		context.fillStyle = "#111111";
+		context.fillStyle = BOUNDS_COLOR;
 		context.fillRect(world.getMaxX() - ball.position.x + CANVAS_WIDTH/2, 0, CANVAS_WIDTH/2, CANVAS_HEIGHT);
 	}
 	if (ball.position.y - CANVAS_HEIGHT/2 <= world.getMinY()) {
-		context.fillStyle = "#111111";
+		context.fillStyle = BOUNDS_COLOR;
 		context.fillRect(0, world.getMinY() - ball.position.y, CANVAS_WIDTH, CANVAS_HEIGHT/2);
 	}
 	if (ball.position.y + CANVAS_WIDTH/2 >= world.getMaxY()) {
-		context.fillStyle = "#111111";
+		context.fillStyle = BOUNDS_COLOR;
 		context.fillRect(0, world.getMaxY() - ball.position.y + CANVAS_HEIGHT/2, CANVAS_WIDTH, CANVAS_HEIGHT/2);
 	}
 }
