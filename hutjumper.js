@@ -57,7 +57,7 @@ var BUNNY_IMG = new Image();
 BUNNY_IMG.src = "./bunny.png";
 
 var characterTilesToLoad;
-var tiles = getCharacterTiles();
+var charTiles = getCharacterTiles();
 var myCharTiles;
 
 /*========Vector Class========*/
@@ -117,6 +117,7 @@ function Ball(x, y, radius, color) {
 	this.radius = radius;
     this.width = 18;
     this.height = 38;
+    this.facingLeft = true;
 	this.mass = 1;
 
 	this.velocity = new Vector();
@@ -260,7 +261,7 @@ function World() {
 }
 
 /*========CharacterTiles Class========*/
-function CharacterTiles(left, leftWalk, right, rightWalk) {
+function CharacterTiles(left, leftWalk, rightWalk, right) {
     this.left = left;
     this.leftWalk = leftWalk;
     this.right = right;
@@ -286,7 +287,8 @@ function getCanvasY(event) {
 }
 
 function getCharacterTiles() {
-    var tiles = new Array();
+    var allTiles = new Array();
+    var charTiles = new Array();
     var tileWidth = 18;
     var tileHeight = 38;
     var borderWidth = 3;
@@ -323,17 +325,25 @@ function getCharacterTiles() {
             tileImage.onload = function() {
                 characterTilesToLoad -= 1;
             };
-            tiles.push(tileImage);
+            allTiles.push(tileImage);
           }
         }
+        for (var i = 0; i < totalTiles; i += 4) {
+            charTiles.push(new CharacterTiles(allTiles[i], allTiles[i+1], allTiles[i+2], allTiles[i+3]));
+        }
     }
-    return tiles;
+    return charTiles;
 }
 
 function applyControls() {
     var controlV = new Vector(
         (KEYS.right.pressed - KEYS.left.pressed) * CONTROL_FORCE,
         (KEYS.down.pressed - KEYS.up.pressed) * CONTROL_FORCE);
+    if (controlV.x < 0) {
+        ball.facingLeft = true;
+    } else if (controlV.x > 0) {
+        ball.facingLeft = false;
+    }
     
     if (KEYS.jump.pressed && ball.isOnGround()) {
         controlV = controlV.add(new Vector(0, -JUMP_FORCE));
@@ -391,11 +401,21 @@ function renderForeground(context) {
 
 function renderBall(context, ball) {
     //static char, moving bg
-	/* context.drawImage(BUNNY_IMG, CANVAS_WIDTH/2 - BUNNY_IMG.width/8, CANVAS_HEIGHT/2 - BUNNY_IMG.height/8, */
-        /* BUNNY_IMG.width/4, BUNNY_IMG.height/4); */
+    var tiles = charTiles[0];
+    var currentFrame;
     
-    var tile = tiles[7]
-    context.drawImage(tile, CANVAS_WIDTH/2 - tile.width/2, CANVAS_HEIGHT/2 - tile.height/2, tile.width, tile.height);
+    var position;
+    if (ball.facingLeft) {
+        position = "left";
+    } else {
+        position = "right";
+    }
+    
+    if (!ball.isOnGround() || (ball.position.x % 100) < 50) {
+        position += "Walk";
+    }
+    currentFrame = tiles[position];
+    context.drawImage(currentFrame, CANVAS_WIDTH/2 - currentFrame.width/2, CANVAS_HEIGHT/2 - currentFrame.height/2, currentFrame.width, currentFrame.height);
     /*context.putImageData(tilesData[0], CANVAS_WIDTH/2 - 32, CANVAS_HEIGHT/2 - 32);*/
 }
 
