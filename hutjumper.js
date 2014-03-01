@@ -504,6 +504,10 @@ function main() {
     // set up keyboard input listeners
 	document.addEventListener("keydown", handleKeydown);
 	document.addEventListener("keyup", handleKeyup);
+	document.addEventListener("click", function() {
+        var coinSound = new Audio("mariocoin.wav");
+        coinSound.play();
+    });
 	window.addEventListener("blur", handleBlur);
 	
 	var context = canvas.getContext("2d");
