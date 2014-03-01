@@ -16,7 +16,6 @@ var JUMP_FORCE = 100;
 var canvas;
 var ball;
 var world;
-var tilesData;
 var lastTime = 0;
 
 var FRICTION_C = 0.15;
@@ -25,26 +24,32 @@ var GRAV_EARTH = new Vector(0, 9.81);
 
 var KEYS = {
     up: {
-        keycode: 38,
+        keycode: 38, //up arrow
         pressed: false
     },
     down: {
-        keycode: 40,
+        keycode: 40, //down arrow
         pressed: false
     },
     left: {
-        keycode: 37,
+        keycode: 37, //left arrow
         pressed: false
     },
     right: {
-        keycode: 39,
+        keycode: 39, //right arrow
         pressed: false
     },
-    space: {
-        keycode: 32,
+    jump: {
+        keycode: 32, //space
+        pressed: false
+    },
+    info: {
+        keycode: 73, //i
         pressed: false
     }
 };
+
+var debugMode = false;
 
 var BACKGROUND_TILE = new Image();
 BACKGROUND_TILE.src = "./grass.png";
@@ -52,7 +57,8 @@ var BUNNY_IMG = new Image();
 BUNNY_IMG.src = "./bunny.png";
 
 var characterTilesToLoad;
-tiles = getCharacterTiles();
+var tiles = getCharacterTiles();
+var myCharTiles;
 
 /*========Vector Class========*/
 function Vector(x, y) {
@@ -253,6 +259,14 @@ function World() {
     
 }
 
+/*========CharacterTiles Class========*/
+function CharacterTiles(left, leftWalk, right, rightWalk) {
+    this.left = left;
+    this.leftWalk = leftWalk;
+    this.right = right;
+    this.rightWalk = rightWalk;
+}
+
 function getCanvasX(event) {
 	// Get the mouse position relative to the canvas element.
 	if (event.offsetX || event.offsetX == 0) {
@@ -312,9 +326,7 @@ function getCharacterTiles() {
             tiles.push(tileImage);
           }
         }
-        
     }
-    
     return tiles;
 }
 
@@ -323,8 +335,12 @@ function applyControls() {
         (KEYS.right.pressed - KEYS.left.pressed) * CONTROL_FORCE,
         (KEYS.down.pressed - KEYS.up.pressed) * CONTROL_FORCE);
     
-    if (KEYS.space.pressed && ball.isOnGround()) {
+    if (KEYS.jump.pressed && ball.isOnGround()) {
         controlV = controlV.add(new Vector(0, -JUMP_FORCE));
+    }
+    if (KEYS.info.pressed) {
+        KEYS.info.pressed = false;//toggle on press, disable holding to toggle forever
+        debugMode = !debugMode;
     }
     
     ball.setAcceleration(controlV.add(GRAV_EARTH));
@@ -384,21 +400,23 @@ function renderBall(context, ball) {
 }
 
 function renderHUD(context) {
-    var x = Math.round(ball.position.x);
-    var y = Math.round(ball.position.y);
-    var velX = Math.round(ball.velocity.x);
-    var velY = Math.round(ball.velocity.y);
-    var accX = Math.round(ball.acceleration.x);
-    var accY = Math.round(ball.acceleration.y);
-	
-    context.save();
-    context.font = "20px Arial";
-    context.globalAlpha = 0.7;
-    context.fillStyle = "#FFFFFF";
-    context.fillText("x: " + x + ", y: " + y, 20, 20);
-    context.fillText("velX: " + velX + ", velY: " + velY, 20, 50);
-    context.fillText("accX: " + accX + ", accY: " + accY, 20, 80);
-    context.restore();
+    if (debugMode) {
+        var x = Math.round(ball.position.x);
+        var y = Math.round(ball.position.y);
+        var velX = Math.round(ball.velocity.x);
+        var velY = Math.round(ball.velocity.y);
+        var accX = Math.round(ball.acceleration.x);
+        var accY = Math.round(ball.acceleration.y);
+        
+        context.save();
+        context.font = "20px Arial";
+        context.globalAlpha = 0.7;
+        context.fillStyle = "#FFFFFF";
+        context.fillText("x: " + x + ", y: " + y, 20, 20);
+        context.fillText("velX: " + velX + ", velY: " + velY, 20, 50);
+        context.fillText("accX: " + accX + ", accY: " + accY, 20, 80);
+        context.restore();
+    }
 }
 
 function render(context) {
