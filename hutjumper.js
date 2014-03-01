@@ -24,19 +24,19 @@ var GRAV_EARTH = new Vector(0, 9.81);
 
 var KEYS = {
     up: {
-        keycode: 38, //up arrow
+        keycode: 87, //w
         pressed: false
     },
     down: {
-        keycode: 40, //down arrow
+        keycode: 83, //s
         pressed: false
     },
     left: {
-        keycode: 37, //left arrow
+        keycode: 65, //a
         pressed: false
     },
     right: {
-        keycode: 39, //right arrow
+        keycode: 68, //d
         pressed: false
     },
     jump: {
