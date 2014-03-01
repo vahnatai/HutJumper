@@ -5,14 +5,23 @@
  * @author Vahnatai
  */
 
+var INCLUDES = ["hutjumper-model.js"];
+
 var FPS = 60;
 var BOUNDS_COLOR = "#111111";
 var CANVAS_WIDTH = 800;
 var CANVAS_HEIGHT = 600;
+var CONTROL_FORCE = 1;
+var JUMP_FORCE = 100;
 var canvas;
 var ball;
 var world;
+var tilesData;
 var lastTime = 0;
+
+var FRICTION_C = 0.15;
+var RESTITUTION = 0.75;
+var GRAV_EARTH = new Vector(0, 9.81);
 
 var KEYS = {
     up: {
@@ -37,14 +46,13 @@ var KEYS = {
     }
 };
 
-var FRICTION_C = 0.15;
-var RESTITUTION = 0.75;
-var GRAV_EARTH = new Vector(0, 9.81);
-
 var BACKGROUND_TILE = new Image();
 BACKGROUND_TILE.src = "./grass.png";
 var BUNNY_IMG = new Image();
 BUNNY_IMG.src = "./bunny.png";
+
+var characterTilesToLoad;
+tiles = getCharacterTiles();
 
 /*========Vector Class========*/
 function Vector(x, y) {
@@ -101,6 +109,8 @@ function Ball(x, y, radius, color) {
 	
 	this.position = new Vector(x,y);
 	this.radius = radius;
+    this.width = 18;
+    this.height = 38;
 	this.mass = 1;
 
 	this.velocity = new Vector();
@@ -115,9 +125,7 @@ function Ball(x, y, radius, color) {
 	this.stepVelocity = function() {
 		var changed = false;
         var friction = this.velocity.multiplyScalar(FRICTION_C);
-        if (friction.getLength()) {
-            //alert("friction is " + friction.x + ", acceleration is " + this.acceleration.x);
-        }
+        
 		this.velocity = this.velocity.add(this.acceleration).subtract(friction);
 	};
 	
@@ -263,14 +271,60 @@ function getCanvasY(event) {
 	} 
 }
 
+function getCharacterTiles() {
+    var tiles = new Array();
+    var tileWidth = 18;
+    var tileHeight = 38;
+    var borderWidth = 3;
+    var transparent = {
+        r: 255,
+        g: 174,
+        b: 201
+    }
+    
+    var ctx = document.createElement('canvas').getContext('2d');
+    var tilesetImage = new Image();
+    tilesetImage.src = "character_tiles.png";
+    tilesetImage.onload = function() {    
+        ctx.canvas.width = tilesetImage.width;
+        ctx.canvas.height = tilesetImage.height;
+        ctx.drawImage(tilesetImage, 0, 0);
+        var tilesX = Math.floor(tilesetImage.width / (tileWidth + borderWidth));
+        var tilesY = Math.floor(tilesetImage.height / (tileHeight + borderWidth));
+        var totalTiles = tilesX * tilesY; 
+        characterTilesToLoad = totalTiles;
+        for (var i=0; i<tilesY; i++) {
+          for (var j=0; j<tilesX; j++) {           
+            // Convert the image data of each tile in the array to an image object
+            var imgX = j * (tileWidth + borderWidth) + borderWidth;
+            var imgY = i * (tileHeight + borderWidth) + borderWidth;
+            var tileData = ctx.getImageData(imgX, imgY, tileWidth, tileHeight);
+            var tempCtx = document.createElement("canvas").getContext("2d");
+            tempCtx.canvas.width = tileWidth;
+            tempCtx.canvas.height = tileHeight;
+            tempCtx.putImageData(tileData, 0, 0);
+            
+            var tileImage = new Image();
+            tileImage.src = tempCtx.canvas.toDataURL();
+            tileImage.onload = function() {
+                characterTilesToLoad -= 1;
+            };
+            tiles.push(tileImage);
+          }
+        }
+        
+    }
+    
+    return tiles;
+}
+
 function applyControls() {
-    var CONTROL_FORCE = 1;
     var controlV = new Vector(
         (KEYS.right.pressed - KEYS.left.pressed) * CONTROL_FORCE,
         (KEYS.down.pressed - KEYS.up.pressed) * CONTROL_FORCE);
     
     if (KEYS.space.pressed && ball.isOnGround()) {
-        controlV = controlV.add(new Vector(0, -50));
+        controlV = controlV.add(new Vector(0, -JUMP_FORCE));
     }
     
     ball.setAcceleration(controlV.add(GRAV_EARTH));
@@ -321,8 +375,12 @@ function renderForeground(context) {
 
 function renderBall(context, ball) {
     //static char, moving bg
-	context.drawImage(BUNNY_IMG, CANVAS_WIDTH/2 - BUNNY_IMG.width/8, CANVAS_HEIGHT/2 - BUNNY_IMG.height/8,
-        BUNNY_IMG.width/4, BUNNY_IMG.height/4);
+	/* context.drawImage(BUNNY_IMG, CANVAS_WIDTH/2 - BUNNY_IMG.width/8, CANVAS_HEIGHT/2 - BUNNY_IMG.height/8, */
+        /* BUNNY_IMG.width/4, BUNNY_IMG.height/4); */
+    
+    var tile = tiles[7]
+    context.drawImage(tile, CANVAS_WIDTH/2 - tile.width/2, CANVAS_HEIGHT/2 - tile.height/2, tile.width, tile.height);
+    /*context.putImageData(tilesData[0], CANVAS_WIDTH/2 - 32, CANVAS_HEIGHT/2 - 32);*/
 }
 
 function renderHUD(context) {
@@ -392,14 +450,23 @@ function exampleLoadJSON() {
     request.send();
 }
 
-window.onload = function() {
-    ball = new Ball(0, 0, 5, "#FF0000");
+function handleBlur() {
+    //no keys are pressed
+    for (k in KEYS) {
+        var key = KEYS[k];
+        key.pressed = false;
+    }
+}
+
+function main() {
+    ball = new Ball(0, 0, 19, "#FF0000");
     canvas = document.getElementById('mainCanvas');
 	world = new World();
     
     // set up keyboard input listeners
 	document.addEventListener("keydown", handleKeydown);
 	document.addEventListener("keyup", handleKeyup);
+	window.addEventListener("blur", handleBlur);
 	
 	var context = canvas.getContext("2d");
 	setInterval(function() {
@@ -408,4 +475,31 @@ window.onload = function() {
         update(delta);
         render(context);
     }, 1000/FPS);
+}
+
+/** Load all libraries **/
+function loadIncludesAndRunMain() {
+    var deferreds = [];
+    for (i in INCLUDES) {
+        var deferred = $.getScript(INCLUDES[i]);
+        deferreds.push(deferred);
+    }
+    deferreds.push($.Deferred(function( deferred ){
+        $(deferred.resolve);
+    }));
+    $.when(deferreds).then(function() {
+        //included libraries loaded
+        //check on an interval for loaded tiles before continuing
+        var intervalId = setInterval(function() {
+            if (characterTilesToLoad) {
+                return;
+            }
+            clearInterval(intervalId);
+            main();
+        }, 1000/FPS);
+    });
+}
+
+window.onload = function() {
+    loadIncludesAndRunMain();
 };

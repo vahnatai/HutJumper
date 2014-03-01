@@ -1,0 +1,3 @@
+function A(){
+    this.a = "";
+}
