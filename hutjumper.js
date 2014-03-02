@@ -500,7 +500,7 @@ function changeCurrentCharacter() {
 }
 
 function main() {
-    ball = new Ball(0, 0, 19, "#FF0000");
+    ball = new Ball(15, 15, 19, "#FF0000");
     canvas = document.getElementById('mainCanvas');
 	world = new World();
     
