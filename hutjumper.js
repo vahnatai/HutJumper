@@ -58,7 +58,7 @@ BUNNY_IMG.src = "./bunny.png";
 
 var characterTilesToLoad;
 var charTiles = getCharacterTiles();
-var myCharTiles;
+var selectedChar = 0;
 
 /*========Vector Class========*/
 function Vector(x, y) {
@@ -401,7 +401,7 @@ function renderForeground(context) {
 
 function renderBall(context, ball) {
     //static char, moving bg
-    var tiles = charTiles[0];
+    var tiles = charTiles[selectedChar];
     var currentFrame;
     
     var position;
@@ -416,7 +416,6 @@ function renderBall(context, ball) {
     }
     currentFrame = tiles[position];
     context.drawImage(currentFrame, CANVAS_WIDTH/2 - currentFrame.width/2, CANVAS_HEIGHT/2 - currentFrame.height/2, currentFrame.width, currentFrame.height);
-    /*context.putImageData(tilesData[0], CANVAS_WIDTH/2 - 32, CANVAS_HEIGHT/2 - 32);*/
 }
 
 function renderHUD(context) {
@@ -496,6 +495,10 @@ function handleBlur() {
     }
 }
 
+function changeCurrentCharacter() {
+    selectedChar = (selectedChar + 1) % charTiles.length;
+}
+
 function main() {
     ball = new Ball(0, 0, 19, "#FF0000");
     canvas = document.getElementById('mainCanvas');
@@ -506,6 +509,7 @@ function main() {
 	document.addEventListener("keyup", handleKeyup);
 	document.addEventListener("click", function() {
         var coinSound = new Audio("mariocoin.wav");
+        changeCurrentCharacter();
         coinSound.play();
     });
 	window.addEventListener("blur", handleBlur);
