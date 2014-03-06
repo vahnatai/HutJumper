@@ -77,9 +77,9 @@
             this.acceleration = accel;
         },
         
-        stepVelocity: function() {
+        stepVelocity: function(friction) {
             var changed = false;
-            var friction = this.velocity.multiplyScalar(FRICTION_C);
+            var friction = this.velocity.multiplyScalar(friction);
             
             this.velocity = this.velocity.add(this.acceleration).subtract(friction);
         },
@@ -114,7 +114,7 @@
             return (distance <= range);
         },
         
-        collide: function(that) {
+        collide: function(that, restitution) {
             var delta = this.position.subtract(that.position);
             var d = delta.getLength();
             // minimum translation distance
@@ -150,7 +150,7 @@
             that.velocity = that.velocity.subtract(impulse.multiplyScalar(im2));
         },
         
-        collideBounds: function(world) {
+        collideBounds: function(world, restitution) {
             var minX = world.getMinX();
             var maxX = world.getMaxX();
             var minY = world.getMinY();
@@ -158,20 +158,20 @@
         
             if ((this.position.x - this.radius <= minX) 
                     && (this.velocity.x < 0)) { 
-                this.velocity.x = -this.velocity.x * RESTITUTION;
+                this.velocity.x = -this.velocity.x * restitution;
                 this.position.x = minX + this.radius; 
             } else if ((this.position.x + this.radius >= maxX)
                     && (this.velocity.x > 0) ) {
-                this.velocity.x = -this.velocity.x * RESTITUTION;
+                this.velocity.x = -this.velocity.x * restitution;
                 this.position.x = maxX - this.radius;
             }
             if (this.position.y - this.radius <= minY
                     && (this.velocity.y < 0) ) {
-                this.velocity.y = -this.velocity.y * RESTITUTION;
+                this.velocity.y = -this.velocity.y * restitution;
                 this.position.y = minY + this.radius;
             } else if (this.position.y + this.radius >= maxY
                     && (this.velocity.y > 0) ) {
-                this.velocity.y = -this.velocity.y * RESTITUTION;
+                this.velocity.y = -this.velocity.y * restitution;
                 this.position.y = maxY - this.radius;
             }
         }

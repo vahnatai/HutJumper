@@ -1,4 +1,4 @@
-(function () {
+(function() {
     /**
      *  @namespace HutJumper.UI
      */
@@ -7,11 +7,24 @@
     /**
      *  Renderer class.
      */
-    HutJumper.UI.Renderer = function (canvas){
+    HutJumper.UI.Renderer = function Renderer(canvas){
         this.context = canvas.getContext("2d");
         this.charTiles = new Array();
+        
+        this.backgroundTile = this.loadImage("./grass.png");
     };
     HutJumper.UI.Renderer.prototype = {
+        FPS: 60,
+        BOUNDS_COLOR: "#111111",
+        CANVAS_WIDTH: 800,
+        CANVAS_HEIGHT: 600,
+    
+        loadImage: function loadImage(url) {
+            var image = new Image();
+            image.src = url;
+            return image;
+        },
+
         getCharacterTilesAsync: function getCharacterTilesAsync(callback) {
             var allTiles = new Array();
             var charTiles = this.charTiles;
@@ -23,11 +36,10 @@
                 g: 174,
                 b: 201
             }
-            var promises = [];
             
             var ctx = document.createElement('canvas').getContext('2d');
             var tilesetImage = new Image();
-            tilesetImage.src = "character_tiles.png";
+            var promises = [];
             tilesetImage.onload = function() {   
                 ctx.canvas.width = tilesetImage.width;
                 ctx.canvas.height = tilesetImage.height;
@@ -61,7 +73,8 @@
                 }
                 //wait for tile images to load, call callback
                 $.when(promises).done(callback);
-            }            
+            }
+            tilesetImage.src = "character_tiles.png";
         },
         
         renderBackground: function renderBackground(context, gameState) {
@@ -72,9 +85,9 @@
             // translate before fill to offset the pattern,
             // then restore position
             context.save();
-            context.fillStyle = context.createPattern(BACKGROUND_TILE, "repeat");
+            context.fillStyle = context.createPattern(this.backgroundTile, "repeat");
             context.translate(-x, -y);
-            context.fillRect(x, y, CANVAS_WIDTH, CANVAS_HEIGHT);
+            context.fillRect(x, y, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
             context.restore();
         },
 
@@ -82,21 +95,21 @@
             //if they are visible from this position, render bounds
             var ball = gameState.getBall();
             var world = gameState.getWorld();
-            if (ball.position.x - CANVAS_WIDTH/2 <= world.getMinX()) {
-                context.fillStyle = BOUNDS_COLOR;
-                context.fillRect(world.getMinX() - ball.position.x, 0, CANVAS_WIDTH/2, CANVAS_HEIGHT);
+            if (ball.position.x - this.CANVAS_WIDTH/2 <= world.getMinX()) {
+                context.fillStyle = this.BOUNDS_COLOR;
+                context.fillRect(world.getMinX() - ball.position.x, 0, this.CANVAS_WIDTH/2, this.CANVAS_HEIGHT);
             }
-            if (ball.position.x + CANVAS_WIDTH/2 >= world.getMaxX()) {
-                context.fillStyle = BOUNDS_COLOR;
-                context.fillRect(world.getMaxX() - ball.position.x + CANVAS_WIDTH/2, 0, CANVAS_WIDTH/2, CANVAS_HEIGHT);
+            if (ball.position.x + this.CANVAS_WIDTH/2 >= world.getMaxX()) {
+                context.fillStyle = this.BOUNDS_COLOR;
+                context.fillRect(world.getMaxX() - ball.position.x + this.CANVAS_WIDTH/2, 0, this.CANVAS_WIDTH/2, this.CANVAS_HEIGHT);
             }
-            if (ball.position.y - CANVAS_HEIGHT/2 <= world.getMinY()) {
-                context.fillStyle = BOUNDS_COLOR;
-                context.fillRect(0, world.getMinY() - ball.position.y, CANVAS_WIDTH, CANVAS_HEIGHT/2);
+            if (ball.position.y - this.CANVAS_HEIGHT/2 <= world.getMinY()) {
+                context.fillStyle = this.BOUNDS_COLOR;
+                context.fillRect(0, world.getMinY() - ball.position.y, this.CANVAS_WIDTH, this.CANVAS_HEIGHT/2);
             }
-            if (ball.position.y + CANVAS_WIDTH/2 >= world.getMaxY()) {
-                context.fillStyle = BOUNDS_COLOR;
-                context.fillRect(0, world.getMaxY() - ball.position.y + CANVAS_HEIGHT/2, CANVAS_WIDTH, CANVAS_HEIGHT/2);
+            if (ball.position.y + this.CANVAS_WIDTH/2 >= world.getMaxY()) {
+                context.fillStyle = this.BOUNDS_COLOR;
+                context.fillRect(0, world.getMaxY() - ball.position.y + this.CANVAS_HEIGHT/2, this.CANVAS_WIDTH, this.CANVAS_HEIGHT/2);
             }
         },
 
@@ -118,10 +131,10 @@
                 position += "Walk";
             }
             currentFrame = tiles[position];
-            context.drawImage(currentFrame, CANVAS_WIDTH/2 - currentFrame.width/2, CANVAS_HEIGHT/2 - currentFrame.height/2, currentFrame.width, currentFrame.height);
+            context.drawImage(currentFrame, this.CANVAS_WIDTH/2 - currentFrame.width/2, this.CANVAS_HEIGHT/2 - currentFrame.height/2, currentFrame.width, currentFrame.height);
         },
 
-        renderHUD: function renderHUD(context, gameState) {
+        renderHUD: function renderHUD(context, gameState, debugMode) {
             var ball = gameState.getBall();
             if (debugMode) {
                 var x = Math.round(ball.position.x);
@@ -142,11 +155,11 @@
             }
         },
 
-        render: function render(gameState) {
+        render: function render(gameState, debugMode) {
             this.renderBackground(this.context, gameState);
             this.renderForeground(this.context, gameState);
             this.renderBall(this.context, gameState);
-            this.renderHUD(this.context, gameState);
+            this.renderHUD(this.context, gameState, debugMode);
             //TODO
         }
     };
