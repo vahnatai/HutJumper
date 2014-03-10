@@ -19,12 +19,22 @@
         CANVAS_WIDTH: 800,
         CANVAS_HEIGHT: 600,
     
+        /**
+         *  Load the given URL as an image in memory.
+         *
+         *  @param url {string}     The image URL.
+         */
         loadImage: function loadImage(url) {
             var image = new Image();
             image.src = url;
             return image;
         },
 
+        /**
+         *  Asynchronously load the character tiles.
+         *
+         *  @param callback {function}  To call on completion.
+         */
         getCharacterTilesAsync: function getCharacterTilesAsync(callback) {
             var allTiles = new Array();
             var charTiles = this.charTiles;
@@ -77,10 +87,17 @@
             tilesetImage.src = "character_tiles.png";
         },
         
+        /**
+         *  Render the background layer to the canvas.
+         *  TODO: parallax
+         *
+         *  @param context {canvas 2d context}  Context to render to.
+         *  @param gameState {GameState}        State to render.
+         */
         renderBackground: function renderBackground(context, gameState) {
             // round because pixels are discrete units; not rounding makes the image fuzzy
-            var x = Math.round(gameState.getBall().position.x);
-            var y = Math.round(gameState.getBall().position.y);
+            var x = Math.round(gameState.getPC().position.x);
+            var y = Math.round(gameState.getPC().position.y);
             // static char, moving bg
             // translate before fill to offset the pattern,
             // then restore position
@@ -91,58 +108,77 @@
             context.restore();
         },
 
+        /**
+         *  Render the foreground layer to the canvas.
+         *
+         *  @param context {canvas 2d context}  Context to render to.
+         *  @param gameState {GameState}        State to render.
+         */
         renderForeground: function renderForeground(context, gameState) {
             //if they are visible from this position, render bounds
-            var ball = gameState.getBall();
+            var pc = gameState.getPC();
             var world = gameState.getWorld();
-            if (ball.position.x - this.CANVAS_WIDTH/2 <= world.getMinX()) {
+            if (pc.position.x - this.CANVAS_WIDTH/2 <= world.getMinX()) {
                 context.fillStyle = this.BOUNDS_COLOR;
-                context.fillRect(world.getMinX() - ball.position.x, 0, this.CANVAS_WIDTH/2, this.CANVAS_HEIGHT);
+                context.fillRect(world.getMinX() - pc.position.x, 0, this.CANVAS_WIDTH/2, this.CANVAS_HEIGHT);
             }
-            if (ball.position.x + this.CANVAS_WIDTH/2 >= world.getMaxX()) {
+            if (pc.position.x + this.CANVAS_WIDTH/2 >= world.getMaxX()) {
                 context.fillStyle = this.BOUNDS_COLOR;
-                context.fillRect(world.getMaxX() - ball.position.x + this.CANVAS_WIDTH/2, 0, this.CANVAS_WIDTH/2, this.CANVAS_HEIGHT);
+                context.fillRect(world.getMaxX() - pc.position.x + this.CANVAS_WIDTH/2, 0, this.CANVAS_WIDTH/2, this.CANVAS_HEIGHT);
             }
-            if (ball.position.y - this.CANVAS_HEIGHT/2 <= world.getMinY()) {
+            if (pc.position.y - this.CANVAS_HEIGHT/2 <= world.getMinY()) {
                 context.fillStyle = this.BOUNDS_COLOR;
-                context.fillRect(0, world.getMinY() - ball.position.y, this.CANVAS_WIDTH, this.CANVAS_HEIGHT/2);
+                context.fillRect(0, world.getMinY() - pc.position.y, this.CANVAS_WIDTH, this.CANVAS_HEIGHT/2);
             }
-            if (ball.position.y + this.CANVAS_WIDTH/2 >= world.getMaxY()) {
+            if (pc.position.y + this.CANVAS_WIDTH/2 >= world.getMaxY()) {
                 context.fillStyle = this.BOUNDS_COLOR;
-                context.fillRect(0, world.getMaxY() - ball.position.y + this.CANVAS_HEIGHT/2, this.CANVAS_WIDTH, this.CANVAS_HEIGHT/2);
+                context.fillRect(0, world.getMaxY() - pc.position.y + this.CANVAS_HEIGHT/2, this.CANVAS_WIDTH, this.CANVAS_HEIGHT/2);
             }
         },
 
-        renderBall: function renderBall(context, gameState) {
+        /**
+         *  Render the entity to the canvas.
+         *
+         *  @param context {canvas 2d context}  Context to render to.
+         *  @param gameState {GameState}        State to render.
+         */
+        renderPC: function renderPC(context, gameState) {
             //static char, moving bg
-            var ball = gameState.getBall();
+            var pc = gameState.getPC();
             var world = gameState.getWorld();
             var tiles = this.charTiles[gameState.getCurrentCharacter()];
             var currentFrame;
             
             var position;
-            if (ball.facingLeft) {
+            if (pc.facingLeft) {
                 position = "left";
             } else {
                 position = "right";
             }
             
-            if (!ball.isOnGround(world) || (ball.position.x % 100) < 50) {
+            if (!pc.isOnGround(world) || (pc.position.x % 100) < 50) {
                 position += "Walk";
             }
             currentFrame = tiles[position];
             context.drawImage(currentFrame, this.CANVAS_WIDTH/2 - currentFrame.width/2, this.CANVAS_HEIGHT/2 - currentFrame.height/2, currentFrame.width, currentFrame.height);
         },
 
+        /**
+         *  Render the heads-up display layer to the canvas.
+         *
+         *  @param context {canvas 2d context}  Context to render to.
+         *  @param gameState {GameState}        State to render.
+         *  @param debugMode {boolean}          Debug flag.
+         */
         renderHUD: function renderHUD(context, gameState, debugMode) {
-            var ball = gameState.getBall();
+            var pc = gameState.getPC();
             if (debugMode) {
-                var x = Math.round(ball.position.x);
-                var y = Math.round(ball.position.y);
-                var velX = Math.round(ball.velocity.x);
-                var velY = Math.round(ball.velocity.y);
-                var accX = Math.round(ball.acceleration.x);
-                var accY = Math.round(ball.acceleration.y);
+                var x = Math.round(pc.position.x);
+                var y = Math.round(pc.position.y);
+                var velX = Math.round(pc.velocity.x);
+                var velY = Math.round(pc.velocity.y);
+                var accX = Math.round(pc.acceleration.x);
+                var accY = Math.round(pc.acceleration.y);
                 
                 context.save();
                 context.font = "20px Arial";
@@ -155,10 +191,17 @@
             }
         },
 
+        
+        /**
+         *  Render the game state to the canvas.
+         *
+         *  @param gameState {GameState}        State to render.
+         *  @param debugMode {boolean}          Debug flag.
+         */
         render: function render(gameState, debugMode) {
             this.renderBackground(this.context, gameState);
             this.renderForeground(this.context, gameState);
-            this.renderBall(this.context, gameState);
+            this.renderPC(this.context, gameState);
             this.renderHUD(this.context, gameState, debugMode);
             //TODO
         }
@@ -167,7 +210,7 @@
     /**
      *  CharacterTiles Class
      */
-    HutJumper.UI.CharacterTiles = function(left, leftWalk, rightWalk, right) {
+    HutJumper.UI.CharacterTiles = function CharacterTiles(left, leftWalk, rightWalk, right) {
         this.left = left;
         this.leftWalk = leftWalk;
         this.right = right;

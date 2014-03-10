@@ -20,28 +20,73 @@
         this.y = y;
     }
     HutJumper.Model.Vector.prototype = {
+        /**
+         *  Returns the scalar length of this Vector.
+         *
+         *  @returns {number}   Vector length.
+         */
         getLength: function() {
             return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
         },
+        
+        /**
+         *  Returns a Vector with the same direction as this Vector,
+         *  but with a length of 1.
+         *
+         *  @returns {Vector}   Normalized Vector.
+         */
         normalized: function() {
             var length = this.getLength();
             var x = this.x / length;
             var y = this.y / length;
             return new HutJumper.Model.Vector(x, y);
         },
+        
+        /**
+         *  Returns a new Vector which is the sum of this Vector and
+         *  the given Vector.
+         *
+         *  @param {Vector} that    The vector to add to this Vector.
+         *  @returns {Vector}       The Vector sum.
+         */
         add: function(that) {
             var x = this.x + that.x;
             var y = this.y + that.y;
             return new HutJumper.Model.Vector(x, y);
         },
+        
+        /**
+         *  Returns a new Vector which is the difference of this Vector
+         *  and the given Vector.
+         *
+         *  @param {Vector} that    The vector to subtract from this Vector.
+         *  @returns {Vector}       The Vector difference.
+         */
         subtract: function(that) {
             var x = this.x - that.x;
             var y = this.y - that.y;
             return new HutJumper.Model.Vector(x, y);
         },
+        
+        /**
+         *  Returns a new Vector which is the dot product (the sum of 
+         *  the products of corresponding entries) of this Vector and
+         *  the given Vector.
+         *
+         *  @param {Vector} that    The vector to multiply into this Vector.
+         *  @returns {number}       The Vector dot product.
+         */
         dotProduct: function(that) {
             return ( (this.x * that.x) + (this.y * that.y) );
         },
+        
+        /**
+         *  Returns a new Vector which is the product of this Vector and
+         *  the given scalar.
+         *
+         *  @param {number} that    The scalar to multiply into this Vector.
+         *  @returns {Vector}       The product.
+         */
         multiplyScalar: function(scalar) {
             var x = (this.x * scalar);
             var y = (this.y * scalar);
@@ -50,9 +95,9 @@
     };
 
     /**
-     * Ball Class
+     * Entity Class
      */
-    HutJumper.Model.Ball = function Ball(x, y, radius, color) {
+    HutJumper.Model.Entity = function Entity(x, y, radius, color) {
         if (!color) {
             color = "#000000";
         }
@@ -68,15 +113,23 @@
         this.facingLeft = true;
         this.color = color;
     }
-    HutJumper.Model.Ball.prototype = {
-        //class-level constants
+    HutJumper.Model.Entity.prototype = {
         mass: 1,
         
-        //Ball functions
+        /**
+         *  Sets the acceleration of this entity.
+         *  
+         *  @param {Vector} accel   The new acceleration.
+         */
         setAcceleration: function(accel) {
             this.acceleration = accel;
         },
         
+        /**
+         *  Sets the velocity of this entity.
+         *  
+         *  @param {Vector} accel   The new acceleration.
+         */
         stepVelocity: function(friction) {
             var changed = false;
             var friction = this.velocity.multiplyScalar(friction);
@@ -84,9 +137,13 @@
             this.velocity = this.velocity.add(this.acceleration).subtract(friction);
         },
         
-        /**
-         * XXX maybe this function should be moved out of the ball class,
+        /*
+         * XXX maybe these functions should be moved out of the Entity class,
          * to World or some game logic elsewhere?
+         */
+         
+        /**
+         *  Sets the position of this entity forward a step.
          */
         stepPosition: function() {
             var changed = false;
@@ -96,12 +153,26 @@
             }
         },
         
+        /**
+         *  Returns true if the entity is standing on solid 
+         *  ground in the given World, false otherwise.
+         *
+         *  @param {World} world    The world to check against.
+         *  @returns {boolean}      The status of the Entity's groundedness.
+         */
         isOnGround: function(world) {
             return this.position.y + this.radius >= world.getMaxY();
         },
         
+        /**
+         *  Returns true if the entity is currently colliding
+         *  with the given Entity, false otherwise.
+         *
+         *  @param {Entity} that    The collision candidate.
+         *  @returns {boolean}      The collision status of the two Entities.
+         */
         isColliding: function(that) {
-            if (!(that instanceof Ball)) {
+            if (!(that instanceof Entity)) {
                 return false;
             }
             if (this == that) {
@@ -114,6 +185,13 @@
             return (distance <= range);
         },
         
+        /**
+         *  Model physical collision of the given Entity with
+         *  this one, adjusting position and velocity.
+         *
+         *  @param {Entity} that            The other Entity.
+         *  @param {number} restitution     The coefficient of restitution.
+         */
         collide: function(that, restitution) {
             var delta = this.position.subtract(that.position);
             var d = delta.getLength();
@@ -142,7 +220,7 @@
             }
             //alert("Bump2: " + vn);
             // collision impulse
-            var i = (-(1.0 + RESTITUTION) * vn) / (im1 + im2);
+            var i = (-(1.0 + restitution) * vn) / (im1 + im2);
             var impulse = mtd.normalized().multiplyScalar(i);
 
             // change in momentum
@@ -150,6 +228,13 @@
             that.velocity = that.velocity.subtract(impulse.multiplyScalar(im2));
         },
         
+        /**
+         *  Model physical collision of this Entity with the
+         *  given World's bounds, adjusting position and velocity.
+         *
+         *  @param {World} world        The world to collide with, if needed.
+         *  @param {number} restitution The coefficient of restitution.
+         */
         collideBounds: function(world, restitution) {
             var minX = world.getMinX();
             var maxX = world.getMaxX();
@@ -210,22 +295,44 @@
             [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0]
         ],
         
-        // class functions
+        /**
+         *  Get the minimum X value for this World.
+         */
         getMinX: function() {
             return 0;
         },
+        
+        /**
+         *  Get the maximum X value for this World.
+         */
         getMaxX: function() {
             return this.data[0].length * this.CELL_WIDTH_PX;
         },
+        
+        /**
+         *  Get the minimum Y value for this World.
+         */
         getMinY: function() {
             return 0;
         },
+        
+        /**
+         *  Get the maximum Y value for this World.
+         */
         getMaxY: function() {
             return this.data.length * this.CELL_WIDTH_PX;
         },
+        
+        /**
+         *  Convert the given in-world coordinates into cell coordinates.
+         */
         worldToCell: function(worldCoords) {
             return worldCoords.multiplyScalar(this.CELL_WIDTH_PX);
         },
+        
+        /**
+         *  Convert the given cell coordinates into in-world coordinates.
+         */
         cellToWorld: function(cellCoords) {
             return worldCoords.multiplyScalar(1/this.CELL_WIDTH_PX);
         }
@@ -236,24 +343,38 @@
      */
     HutJumper.Model.GameState = function GameState() {
         this.world = new HutJumper.Model.World();
-        this.ball = new HutJumper.Model.Ball(15, 15, 19, "#FF0000");
+        this.pc = new HutJumper.Model.Entity(15, 15, 19, "#FF0000");
         this.selectedChar = 0;
     }
     HutJumper.Model.GameState.prototype = {
         NUM_CHARACTERS: 3,
     
-        getBall: function getBall() {
-            return this.ball;
+        /**
+         *  Returns the player character Entity.
+         */
+        getPC: function getPC() {
+            return this.pc;
         },
         
+        /**
+         *  Returns the current World.
+         */
         getWorld: function getWorld() {
             return this.world;
         },
         
+        /**
+         *  Returns the index of the currently selected player character.
+         *  TODO make this work better later
+         */
         getCurrentCharacter: function getCurrentCharacter() {
             return this.selectedChar;
         },
         
+        /**
+         *  Increments the index of the currently selected player character.
+         *  TODO make this work better later
+         */
         changeCurrentCharacter: function changeCurrentCharacter() {
             this.selectedChar = (this.selectedChar + 1) % this.NUM_CHARACTERS;
         }
