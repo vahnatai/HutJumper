@@ -44,6 +44,10 @@
         RESTITUTION: 0.75,
         GRAV_EARTH: new HutJumper.Model.Vector(0, 9.81),
 
+        /*
+         * TODO make a ControlKey(?) class, replace KEYS with an 
+         * object created in constructor instead of in the prototype
+         */
         KEYS: {
             up: {
                 keycode: 87, //w
@@ -71,19 +75,27 @@
             }
         },
      
+        /**
+         *  Begin execution of the main game interval, which
+         *  updates the model and renders to the canvas.
+         */
         start: function start() {
             var self = this;
-            this.renderer.getCharacterTilesAsync(function() {
-                setInterval(function mainLoop() {
+            var setupGameInterval = function() {
+                setInterval(function () {
                     var time = new Date().getTime();
                     var delta = (self.lastTime ? (self.lastTime - time) : 0);
                     self.lastTime = time;
                     self.update(delta);
                     self.renderer.render(self.gameState, self.debugMode);
                 }, 1000/self.renderer.FPS);
-            });
+            }
+            this.renderer.getCharacterTilesAsync(setupGameInterval);
         },
         
+        /**
+         *  Handles keyup events and updates the pressed keys.
+         */
         handleKeyup: function handleKeyup(event) {
             //update which key is now not pressed
             for (k in this.KEYS) {
@@ -95,6 +107,9 @@
             }
         },
 
+        /**
+         *  Handles keydown events and updates the unpressed keys.
+         */
         handleKeydown: function handleKeydown(event) {
             //update which key is now pressed
             for (k in this.KEYS) {
@@ -106,6 +121,9 @@
             }
         },
         
+        /**
+         * If the game loses focus, resets the keys.
+         */
         handleBlur: function handleBlur() {
             //no keys are pressed
             for (k in this.KEYS) {
@@ -114,6 +132,9 @@
             }
         },
 
+        /**
+         *  Gets the canvas X coordinate of the given mouse event.
+         */
         getCanvasX: function getCanvasX(event) {
             // Get the mouse position relative to the canvas element.
             if (typeof event.offsetX !== 'undefined') {
@@ -125,6 +146,9 @@
             return null;
         },
 
+        /**
+         *  Gets the canvas Y coordinate of the given mouse event.
+         */
         getCanvasY: function getCanvasY(event) {
             // Get the mouse position relative to the canvas element.
             if (typeof event.offsetY !== 'undefined') {
@@ -136,17 +160,20 @@
             return null;
         },
 
+        /**
+         *  In a given game tick, applies any active controls to the model.
+         */
         applyControls: function applyControls() {
             var controlV = new HutJumper.Model.Vector(
                 (this.KEYS.right.pressed - this.KEYS.left.pressed) * this.CONTROL_FORCE,
                 (this.KEYS.down.pressed - this.KEYS.up.pressed) * this.CONTROL_FORCE);
             if (controlV.x < 0) {
-                this.gameState.getBall().facingLeft = true;
+                this.gameState.getPC().facingLeft = true;
             } else if (controlV.x > 0) {
-                this.gameState.getBall().facingLeft = false;
+                this.gameState.getPC().facingLeft = false;
             }
             
-            if (this.KEYS.jump.pressed && this.gameState.getBall().isOnGround(this.gameState.getWorld())) {
+            if (this.KEYS.jump.pressed && this.gameState.getPC().isOnGround(this.gameState.getWorld())) {
                 controlV = controlV.add(new HutJumper.Model.Vector(0, -this.JUMP_FORCE));
             }
             if (this.KEYS.info.pressed) {
@@ -154,18 +181,22 @@
                 this.debugMode = !this.debugMode;
             }
             
-            this.gameState.getBall().setAcceleration(controlV.add(this.GRAV_EARTH));
+            this.gameState.getPC().setAcceleration(controlV.add(this.GRAV_EARTH));
         },
 
+        /**
+         *  Update game state based on Entity positions, velocities, and accelerations.
+         */
         update: function update(delta) {
             //TODO
             this.applyControls();
-            var ball = this.gameState.getBall();
-            ball.stepPosition();
-            ball.collideBounds(this.gameState.getWorld(), this.RESTITUTION);
-            ball.stepVelocity(this.FRICTION_C);
+            var pc = this.gameState.getPC();
+            pc.stepPosition();
+            pc.collideBounds(this.gameState.getWorld(), this.RESTITUTION);
+            pc.stepVelocity(this.FRICTION_C);
         },
         
+        // XXX just an example
         exampleLoadJSON: function exampleLoadJSON() {
             var request;
             if (window.XMLHttpRequest) {
@@ -177,7 +208,7 @@
             }
             request.onreadystatechange = function() {
                 if (request.readyState == 4 && request.status == 200) {
-                    //TODO something with JSON.parse(req.responseText)
+                    //TODO something with JSON.parse(request.responseText)
                 }
             }
             request.open("GET", "ajax_info.txt", true);
