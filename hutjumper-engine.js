@@ -11,19 +11,44 @@
         // set up input listeners
         var self = this;
         document.addEventListener("keydown", function(event) {
-            self.handleKeydown(event);
+            //update which key is now pressed
+            for (k in self.KEYS) {
+                var key = self.KEYS[k];
+                if (event.keyCode === key.keycode) {
+                    key.pressed = true;
+                    break;
+                }
+            }
         });
         document.addEventListener("keyup", function(event) {
-            self.handleKeyup(event);
+            //update which key is now not pressed
+            for (k in self.KEYS) {
+                var key = self.KEYS[k];
+                if (event.keyCode === key.keycode) {
+                    key.pressed = false;
+                    break;
+                }
+            }
         });
-        document.addEventListener("click", function(event) {
-            var coinSound = new Audio("mariocoin.wav");
-            coinSound.addEventListener('loadeddata', function() {
-                coinSound.play();
-            });
-            self.gameState.changeCurrentCharacter();
+        window.addEventListener("blur", function(event) {
+            //if game loses focus, reset all keys
+            for (k in self.KEYS) {
+                var key = self.KEYS[k];
+                key.pressed = false;
+            }
         });
-        window.addEventListener("blur", this.handleBlur);
+        canvas.addEventListener("mouseup", function(event) {
+            if (self.getMouseButton(event) === 2) {
+                var coinSound = new Audio("mariocoin.wav");
+                coinSound.addEventListener('loadeddata', function() {
+                    coinSound.play();
+                });
+                self.gameState.changeCurrentCharacter();
+            }
+        });
+        canvas.oncontextmenu = function(event) {
+            return false;//prevent default menu on canvas
+        };
         
         //init game state
         this.gameState = new HutJumper.Model.GameState();
@@ -92,45 +117,6 @@
             }
             this.renderer.getCharacterTilesAsync(setupGameInterval);
         },
-        
-        /**
-         *  Handles keyup events and updates the pressed keys.
-         */
-        handleKeyup: function handleKeyup(event) {
-            //update which key is now not pressed
-            for (k in this.KEYS) {
-                var key = this.KEYS[k];
-                if (event.keyCode === key.keycode) {
-                    key.pressed = false;
-                    break;
-                }
-            }
-        },
-
-        /**
-         *  Handles keydown events and updates the unpressed keys.
-         */
-        handleKeydown: function handleKeydown(event) {
-            //update which key is now pressed
-            for (k in this.KEYS) {
-                var key = this.KEYS[k];
-                if (event.keyCode === key.keycode) {
-                    key.pressed = true;
-                    break;
-                }
-            }
-        },
-        
-        /**
-         * If the game loses focus, resets the keys.
-         */
-        handleBlur: function handleBlur() {
-            //no keys are pressed
-            for (k in this.KEYS) {
-                var key = this.KEYS[k];
-                key.pressed = false;
-            }
-        },
 
         /**
          *  Gets the canvas X coordinate of the given mouse event.
@@ -158,6 +144,18 @@
                 return event.layerY - canvas.offsetTop;
             } 
             return null;
+        },
+        
+        /**
+         *  Gets the pressed button from the given relevant mouse event.
+         */
+        getMouseButton: function getMouseButton(event) {
+            if (typeof event.which !== 'undefined') {
+                return event.which - 1;
+            }
+            if (typeof event.button !== 'undefined') {
+                return event.button;
+            }
         },
 
         /**
