@@ -109,7 +109,7 @@
             var setupGameInterval = function() {
                 setInterval(function () {
                     var time = new Date().getTime();
-                    var delta = (self.lastTime ? (self.lastTime - time) : 0);
+                    var delta = (self.lastTime ? (time - self.lastTime) : 0);
                     self.lastTime = time;
                     self.update(delta);
                     self.renderer.render(self.gameState, self.debugMode);
@@ -189,7 +189,7 @@
             //TODO
             this.applyControls();
             var pc = this.gameState.getPC();
-            pc.stepPosition();
+            pc.stepPosition(delta);
             pc.collideBounds(this.gameState.getWorld(), this.RESTITUTION);
             pc.stepVelocity(this.FRICTION_C);
         },
