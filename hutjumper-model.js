@@ -46,7 +46,7 @@
          *  Returns a new Vector which is the sum of this Vector and
          *  the given Vector.
          *
-         *  @param {Vector} that    The vector to add to this Vector.
+         *  @param that {Vector}    The vector to add to this Vector.
          *  @returns {Vector}       The Vector sum.
          */
         add: function(that) {
@@ -234,8 +234,9 @@
          *
          *  @param {World} world        The world to collide with, if needed.
          *  @param {number} restitution The coefficient of restitution.
+         *  @param deltaTime {number}   Time(in milliseconds) since the last update.
          */
-        collideBounds: function(world, restitution) {
+        collideBounds: function(world, restitution, deltaTime) {
             var minX = world.getMinX();
             var maxX = world.getMaxX();
             var minY = world.getMinY();
