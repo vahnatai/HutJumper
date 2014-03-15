@@ -106,20 +106,34 @@
          */
         start: function start() {
             var self = this;
+            var frameRate = 1000/self.renderer.FPS; // rendering rate in milliseconds
+            var dt = 10; // fixed simulation chunk size in milliseconds
+            var accumulator = 0; // store remaining miliseconds (< dt) to simulate after next frame
             var setupGameInterval = function() {
-                setInterval(function () {
+                setInterval(function() {
                     var time = new Date().getTime();
-                    var delta = (self.lastTime ? (time - self.lastTime) : 0);
+                    var frameTime = (self.lastTime ? (time - self.lastTime) : 0);
                     self.lastTime = time;
-                    self.update(delta);
+                    accumulator += frameTime;
+                    
+                    // simulate what time has passed in dt-sized chunks, leave remainder for next time
+                    while (accumulator >= dt) {
+                        self.update(dt);
+                        accumulator -= dt;
+                    }
+                    console.debug('acc:' + accumulator);
+                    
+                    //TODO render state ahead by accumulator value to eliminate temporal aliasing?
                     self.renderer.render(self.gameState, self.debugMode);
-                }, 1000/self.renderer.FPS);
+                }, frameRate);
             }
             this.renderer.getCharacterTilesAsync(setupGameInterval);
         },
 
         /**
          *  Gets the canvas X coordinate of the given mouse event.
+         *
+         *  @param event {MouseEvent}
          */
         getCanvasX: function getCanvasX(event) {
             // Get the mouse position relative to the canvas element.
@@ -134,6 +148,8 @@
 
         /**
          *  Gets the canvas Y coordinate of the given mouse event.
+         *
+         *  @param event {MouseEvent}
          */
         getCanvasY: function getCanvasY(event) {
             // Get the mouse position relative to the canvas element.
@@ -148,6 +164,8 @@
         
         /**
          *  Gets the pressed button from the given relevant mouse event.
+         *
+         *  @param event {MouseEvent}
          */
         getMouseButton: function getMouseButton(event) {
             if (typeof event.which !== 'undefined') {
@@ -183,15 +201,18 @@
         },
 
         /**
-         *  Update game state based on Entity positions, velocities, and accelerations.
+         *  Update game state based on Entity positions, velocities, accelerations,
+         *  and the time since the last update.
+         *  
+         *  @param deltaTime {number}   Time(in milliseconds) since the last update.
          */
-        update: function update(delta) {
+        update: function update(deltaTime) {
             //TODO
             this.applyControls();
             var pc = this.gameState.getPC();
-            pc.stepPosition(delta);
-            pc.collideBounds(this.gameState.getWorld(), this.RESTITUTION);
-            pc.stepVelocity(this.FRICTION_C);
+            pc.stepPosition(deltaTime);
+            pc.collideBounds(this.gameState.getWorld(), this.RESTITUTION, deltaTime);
+            pc.stepVelocity(this.FRICTION_C, deltaTime);
         },
         
         // XXX just an example
