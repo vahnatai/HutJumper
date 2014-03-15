@@ -145,11 +145,11 @@
         /**
          *  Sets the position of this entity forward a step.
          */
-        stepPosition: function() {
+        stepPosition: function(delta) {
             var changed = false;
             if (this.velocity.getLength()) {
                 //XXX
-                this.position = this.position.add(this.velocity);
+                this.position = this.position.add(this.velocity.multiplyScalar(delta/17));
             }
         },
         
