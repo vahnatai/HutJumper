@@ -38,6 +38,11 @@
             }
         });
         canvas.addEventListener("mouseup", function(event) {
+            if (self.getMouseButton(event) === 0) {
+                var pc = self.gameState.getPC();
+                self.gameState.addEntity(new HutJumper.Model.Projectile('fireball', 
+                    pc.position.x, pc.position.y, 5, new HutJumper.Model.Vector(0, 2)));
+            }
             if (self.getMouseButton(event) === 2) {
                 var coinSound = new Audio("mariocoin.wav");
                 coinSound.addEventListener('loadeddata', function() {
@@ -121,9 +126,9 @@
                         self.update(dt);
                         accumulator -= dt;
                     }
-                    console.debug('acc:' + accumulator);
                     
                     //TODO render state ahead by accumulator value to eliminate temporal aliasing?
+                    //see: (http://gafferongames.com/game-physics/fix-your-timestep/)
                     self.renderer.render(self.gameState, self.debugMode);
                 }, frameRate);
             }

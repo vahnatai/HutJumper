@@ -97,21 +97,17 @@
     /**
      * Entity Class
      */
-    HutJumper.Model.Entity = function Entity(x, y, radius, color) {
-        if (!color) {
-            color = "#000000";
-        }
-        
+    HutJumper.Model.Entity = function Entity(typeId, x, y, radius) {
+        this.typeId = typeId;
         this.position = new HutJumper.Model.Vector(x,y);
         this.velocity = new HutJumper.Model.Vector();
         this.acceleration = new HutJumper.Model.Vector();
+        this.facingLeft = true;
         
         this.radius = radius;
         //TODO make these matter!
         this.width = 18;
         this.height = 38;
-        this.facingLeft = true;
-        this.color = color;
     }
     HutJumper.Model.Entity.prototype = {
         mass: 1,
@@ -262,6 +258,19 @@
             }
         }
     };
+    
+    /**
+     *  Projectile class.
+     *
+     *  @extends {Entity}
+     */
+     HutJumper.Model.Projectile = function Projectile(typeId, x, y, radius, velocity) {
+        HutJumper.Model.Entity.call(this, typeId, x, y, radius);
+        this.velocity = velocity;
+     };
+     extend(HutJumper.Model.Entity, HutJumper.Model.Projectile);
+     
+     
 
     /**
      *  World class.
@@ -344,7 +353,8 @@
      */
     HutJumper.Model.GameState = function GameState() {
         this.world = new HutJumper.Model.World();
-        this.pc = new HutJumper.Model.Entity(15, 15, 19, "#FF0000");
+        this.pc = new HutJumper.Model.Entity('pc', 15, 15, 19);
+        this.entities = [this.pc];
         this.selectedChar = 0;
     }
     HutJumper.Model.GameState.prototype = {
@@ -352,9 +362,29 @@
     
         /**
          *  Returns the player character Entity.
+         *
+         *  @returns {Entity}
          */
         getPC: function getPC() {
             return this.pc;
+        },
+        
+        /**
+         *  Returns all Entities.
+         *
+         *  @returns {Entity[]}
+         */
+        getEntities: function getEntities() {
+            return this.entities.slice(0);
+        },
+        
+        /**
+         *  Adds the given entity to the GameState.
+         *
+         *  @param entity {Entity}
+         */
+        addEntity: function addEntity(entity) {
+            this.entities.push(entity);
         },
         
         /**

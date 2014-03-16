@@ -12,6 +12,7 @@
         this.charTiles = new Array();
         
         this.backgroundTile = this.loadImage("./grass.png");
+        this.fireball = this.loadImage("./mario-fireball.png");//store this in a better way somewhere else with other images
     };
     HutJumper.UI.Renderer.prototype = {
         FPS: 60,
@@ -135,9 +136,35 @@
                 context.fillRect(0, world.getMaxY() - pc.position.y + this.CANVAS_HEIGHT/2, this.CANVAS_WIDTH, this.CANVAS_HEIGHT/2);
             }
         },
+        
+        /**
+         *  Render all visible entities to the canvas.
+         *
+         *  @param context {canvas 2d context}  Context to render to.
+         *  @param gameState {GameState}        State to render.
+         */
+        renderEntities: function renderEntities(context, gameState) {
+            this.renderPC(context, gameState);
+            var pc = gameState.getPC();
+            var ents = gameState.getEntities();
+            ents.splice(ents.indexOf(pc), 1);
+            for (var i in ents) {
+                //TODO something with other entities
+                var entity = ents[i];
+                // console.debug(ents);
+                // if (entity.position.x > pc.position.x - CANVAS_WIDTH/2
+                        // && entity.position.x < pc.position.x + CANVAS_WIDTH/2
+                        // && entity.position.y > pc.position.y - CANVAS_HEIGHT/2
+                        // && entity.position.y < pc.position.y + CANVAS_HEIGHT/2) {
+                    // context.drawImage(this.fireball, entity.position.x - pc.position.x,
+                        // entity.position.y - pc.position.y, this.fireball.width, this.fireball.height);
+                    
+                // }
+            }
+        },
 
         /**
-         *  Render the entity to the canvas.
+         *  Render the player character to the canvas.
          *
          *  @param context {canvas 2d context}  Context to render to.
          *  @param gameState {GameState}        State to render.
@@ -201,7 +228,7 @@
         render: function render(gameState, debugMode) {
             this.renderBackground(this.context, gameState);
             this.renderForeground(this.context, gameState);
-            this.renderPC(this.context, gameState);
+            this.renderEntities(this.context, gameState);
             this.renderHUD(this.context, gameState, debugMode);
             //TODO
         }
