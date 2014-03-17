@@ -103,6 +103,7 @@
         this.velocity = new HutJumper.Model.Vector();
         this.acceleration = new HutJumper.Model.Vector();
         this.facingLeft = true;
+        this.expired = false;
         
         this.radius = radius;
         //TODO make these matter!
@@ -145,7 +146,7 @@
             var changed = false;
             if (this.velocity.getLength()) {
                 //XXX
-                this.position = this.position.add(this.velocity.multiplyScalar(delta/17));
+                this.position = this.position.add(this.velocity);
             }
         },
         
@@ -256,6 +257,20 @@
                 this.velocity.y = -this.velocity.y * restitution;
                 this.position.y = maxY - this.radius;
             }
+        },
+        
+        /**
+         *  Mark this Entity to be removed.
+         */
+        expire: function expire() {
+            this.expired = true;
+        },
+        
+        /**
+         *  Check if Entity is marked for removal.
+         */
+        isExpired: function isExpired() {
+            return this.expired;
         }
     };
     
@@ -264,11 +279,25 @@
      *
      *  @extends {Entity}
      */
-     HutJumper.Model.Projectile = function Projectile(typeId, x, y, radius, velocity) {
+     HutJumper.Model.Projectile = function Projectile(typeId, x, y, radius, velocity, lifeTime) {
         HutJumper.Model.Entity.call(this, typeId, x, y, radius);
         this.velocity = velocity;
+        this.lifeTime = lifeTime;
      };
-     extend(HutJumper.Model.Entity, HutJumper.Model.Projectile);
+     extend(HutJumper.Model.Entity, HutJumper.Model.Projectile, {
+     
+        /**
+         *  Updates expiration based on lifeTime.
+         */
+        stepPosition: function stepPosition(delta) {
+            HutJumper.Model.Entity.prototype.stepPosition.call(this, delta);
+            if (this.lifeTime > 0) {
+                this.lifeTime -= delta;
+            } else {
+                this.expire();
+            }
+        }
+     });
      
      
 
@@ -351,9 +380,10 @@
     /**
      *  GameState class.
      */
-    HutJumper.Model.GameState = function GameState() {
+    HutJumper.Model.GameState = function GameState(gravity) {
         this.world = new HutJumper.Model.World();
         this.pc = new HutJumper.Model.Entity('pc', 15, 15, 19);
+        this.pc.setAcceleration(gravity);
         this.entities = [this.pc];
         this.selectedChar = 0;
     }
@@ -385,6 +415,15 @@
          */
         addEntity: function addEntity(entity) {
             this.entities.push(entity);
+        },
+        
+        /**
+         *  Removes the given entity from the GameState.
+         *
+         *  @param entity {Entity}
+         */
+        removeEntity: function removeEntity(entity) {
+            this.entities.splice(this.entities.indexOf(entity), 1);
         },
         
         /**

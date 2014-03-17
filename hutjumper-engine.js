@@ -40,14 +40,14 @@
         canvas.addEventListener("mouseup", function(event) {
             if (self.getMouseButton(event) === 0) {
                 var pc = self.gameState.getPC();
-                self.gameState.addEntity(new HutJumper.Model.Projectile('fireball', 
-                    pc.position.x, pc.position.y, 5, new HutJumper.Model.Vector(0, 2)));
+                var sign = (pc.facingLeft ? -1 : 1);
+                var projectile = new HutJumper.Model.Projectile('fireball', 
+                        pc.position.x, pc.position.y - 30, 16, new HutJumper.Model.Vector(sign*20, -10), 500);
+                projectile.setAcceleration(self.GRAV_EARTH);
+                self.gameState.addEntity(projectile);
             }
             if (self.getMouseButton(event) === 2) {
-                var coinSound = new Audio("mariocoin.wav");
-                coinSound.addEventListener('loadeddata', function() {
-                    coinSound.play();
-                });
+                self.playAudio(self.AUDIO_COIN);
                 self.gameState.changeCurrentCharacter();
             }
         });
@@ -56,7 +56,7 @@
         };
         
         //init game state
-        this.gameState = new HutJumper.Model.GameState();
+        this.gameState = new HutJumper.Model.GameState(this.GRAV_EARTH);
         
         // init renderer
         this.renderer = new HutJumper.UI.Renderer(canvas);
@@ -73,6 +73,8 @@
         FRICTION_C: 0.15,
         RESTITUTION: 0.75,
         GRAV_EARTH: new HutJumper.Model.Vector(0, 9.81),
+        
+        AUDIO_COIN: new Audio('mariocoin.wav'),
 
         /*
          * TODO make a ControlKey(?) class, replace KEYS with an 
@@ -185,24 +187,24 @@
          *  In a given game tick, applies any active controls to the model.
          */
         applyControls: function applyControls() {
+            var pc = this.gameState.getPC();
             var controlV = new HutJumper.Model.Vector(
                 (this.KEYS.right.pressed - this.KEYS.left.pressed) * this.CONTROL_FORCE,
                 (this.KEYS.down.pressed - this.KEYS.up.pressed) * this.CONTROL_FORCE);
             if (controlV.x < 0) {
-                this.gameState.getPC().facingLeft = true;
+                pc.facingLeft = true;
             } else if (controlV.x > 0) {
-                this.gameState.getPC().facingLeft = false;
+                pc.facingLeft = false;
             }
             
-            if (this.KEYS.jump.pressed && this.gameState.getPC().isOnGround(this.gameState.getWorld())) {
+            if (this.KEYS.jump.pressed && pc.isOnGround(this.gameState.getWorld())) {
                 controlV = controlV.add(new HutJumper.Model.Vector(0, -this.JUMP_FORCE));
             }
             if (this.KEYS.info.pressed) {
                 this.KEYS.info.pressed = false;//toggle on press, disable holding to toggle forever
                 this.debugMode = !this.debugMode;
             }
-            
-            this.gameState.getPC().setAcceleration(controlV.add(this.GRAV_EARTH));
+            pc.setAcceleration(this.GRAV_EARTH.add(controlV));
         },
 
         /**
@@ -215,9 +217,36 @@
             //TODO
             this.applyControls();
             var pc = this.gameState.getPC();
-            pc.stepPosition(deltaTime);
-            pc.collideBounds(this.gameState.getWorld(), this.RESTITUTION, deltaTime);
-            pc.stepVelocity(this.FRICTION_C, deltaTime);
+            var ents = this.gameState.getEntities();
+            
+            //clean up expired entities
+            for (var i in ents) {
+                var ent = ents[i];
+                if (ent.isExpired()) {
+                    this.gameState.removeEntity(ent);
+                }
+            }
+            ents = this.gameState.getEntities();
+            for (var i in ents) {
+                var ent = ents[i];
+                
+                ent.stepPosition(deltaTime);
+                ent.collideBounds(this.gameState.getWorld(), this.RESTITUTION, deltaTime);
+                ent.stepVelocity(this.FRICTION_C, deltaTime);
+            }
+            
+        },
+        
+        /**
+         *  Play a copy of the given Audio object on its own channel.
+         *
+         *  @param audio {Audio}    The Audio object to play.
+         *  @returns {Audio}        The copy, ie: the Audio object that is actually playing now.
+         */
+        playAudio: function playAudio(audio){
+            var newAudio = audio.cloneNode();
+            newAudio.play();
+            return newAudio;
         },
         
         // XXX just an example

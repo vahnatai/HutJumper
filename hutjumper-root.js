@@ -32,3 +32,15 @@ function extend(base, sub, properties) {
     }
   }
 }
+
+/**
+ *  If value is defined, returns value. Otherwise returns
+ *  defaultValue. Useful for function parameter defaults.
+ *
+ *  @param value        A value which may be undefined.
+ *  @param defaultValue A default value to use if value is undefined.
+ *  @returns            value if it is defined, else defaultValue.
+ */
+function valueOrDefault(value, defaultValue) {
+    return (typeof value !== 'undefined' ? value : defaultValue);
+}

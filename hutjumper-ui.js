@@ -151,15 +151,14 @@
             for (var i in ents) {
                 //TODO something with other entities
                 var entity = ents[i];
-                // console.debug(ents);
-                // if (entity.position.x > pc.position.x - CANVAS_WIDTH/2
-                        // && entity.position.x < pc.position.x + CANVAS_WIDTH/2
-                        // && entity.position.y > pc.position.y - CANVAS_HEIGHT/2
-                        // && entity.position.y < pc.position.y + CANVAS_HEIGHT/2) {
-                    // context.drawImage(this.fireball, entity.position.x - pc.position.x,
-                        // entity.position.y - pc.position.y, this.fireball.width, this.fireball.height);
+                var cameraPos = this.worldToCamera(gameState, entity.position);
+                if (cameraPos.x > 0 && cameraPos.x < this.CANVAS_WIDTH
+                        && cameraPos.y > 0 && cameraPos.y < this.CANVAS_HEIGHT) {
                     
-                // }
+                    context.drawImage(this.fireball, cameraPos.x, cameraPos.y,
+                        this.fireball.width, this.fireball.height);
+                    
+                }
             }
         },
 
@@ -231,6 +230,16 @@
             this.renderEntities(this.context, gameState);
             this.renderHUD(this.context, gameState, debugMode);
             //TODO
+        },
+        
+        /**
+         *  Convert world-relative coordinates to camera-relative coordinates.
+         */
+        worldToCamera: function worldToCamera(gameState, worldPos){
+            var cameraPos = worldPos.subtract(gameState.pc.position);
+            cameraPos.x += this.CANVAS_WIDTH/2;
+            cameraPos.y += this.CANVAS_HEIGHT/2;
+            return cameraPos;
         }
     };
     
