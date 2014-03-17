@@ -41,7 +41,7 @@
             if (self.getMouseButton(event) === 0) {
                 var pc = self.gameState.getPC();
                 var sign = (pc.facingLeft ? -1 : 1);
-                var projectile = new HutJumper.Model.Projectile('fireball', 
+                var projectile = new HutJumper.Model.Projectile('fireball', self.gameState.getWorld(),
                         pc.position.x, pc.position.y - 30, 16, new HutJumper.Model.Vector(sign*20, -10), 500);
                 projectile.setAcceleration(self.GRAV_EARTH);
                 self.gameState.addEntity(projectile);
@@ -69,7 +69,6 @@
      };
      HutJumper.Engine.Controller.prototype = {
         CONTROL_FORCE: 1,
-        JUMP_FORCE: 100,
         FRICTION_C: 0.15,
         RESTITUTION: 0.75,
         GRAV_EARTH: new HutJumper.Model.Vector(0, 9.81),
@@ -197,8 +196,10 @@
                 pc.facingLeft = false;
             }
             
-            if (this.KEYS.jump.pressed && pc.isOnGround(this.gameState.getWorld())) {
-                controlV = controlV.add(new HutJumper.Model.Vector(0, -this.JUMP_FORCE));
+            if (this.KEYS.jump.pressed && pc.isOnGround(this.gameState.getWorld()) && !pc.isJumping()) {
+                pc.startJump();
+            } else if (!this.KEYS.jump.pressed && pc.isJumping()) {
+                pc.stopJump();
             }
             if (this.KEYS.info.pressed) {
                 this.KEYS.info.pressed = false;//toggle on press, disable holding to toggle forever

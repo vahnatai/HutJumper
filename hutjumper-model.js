@@ -97,13 +97,16 @@
     /**
      * Entity Class
      */
-    HutJumper.Model.Entity = function Entity(typeId, x, y, radius) {
+    HutJumper.Model.Entity = function Entity(typeId, world, x, y, radius) {
         this.typeId = typeId;
+        this.world = world;
         this.position = new HutJumper.Model.Vector(x,y);
         this.velocity = new HutJumper.Model.Vector();
         this.acceleration = new HutJumper.Model.Vector();
         this.facingLeft = true;
         this.expired = false;
+        this.jumping = false;
+        this.jumpTime = 0;
         
         this.radius = radius;
         //TODO make these matter!
@@ -112,6 +115,7 @@
     }
     HutJumper.Model.Entity.prototype = {
         mass: 1,
+        JUMP_FORCE: 25,
         
         /**
          *  Sets the acceleration of this entity.
@@ -123,15 +127,18 @@
         },
         
         /**
-         *  Sets the velocity of this entity.
+         *  Simulates the velocity of this entity.
          *  
-         *  @param {Vector} accel   The new acceleration.
+         *  @param {number} friction   Friction of movement.
          */
-        stepVelocity: function(friction) {
+        stepVelocity: function(friction, delta) {
             var changed = false;
             var friction = this.velocity.multiplyScalar(friction);
             
-            this.velocity = this.velocity.add(this.acceleration).subtract(friction);
+            this.velocity = this.velocity.add(this.acceleration).subtract(friction).add(this.world.gravity);
+            if (this.jumpTime > 0) {
+                this.velocity = this.velocity.add(new HutJumper.Model.Vector(0, -this.JUMP_FORCE));
+            }
         },
         
         /*
@@ -147,6 +154,9 @@
             if (this.velocity.getLength()) {
                 //XXX
                 this.position = this.position.add(this.velocity);
+            }
+            if (this.jumpTime > 0) {
+                this.jumpTime -= delta;
             }
         },
         
@@ -271,6 +281,29 @@
          */
         isExpired: function isExpired() {
             return this.expired;
+        },
+        
+        /**
+         *  Check if Entity is currently jumping.
+         */
+        isJumping: function isJumping() {
+            return this.jumping;
+        },
+        
+        /**
+         *  Begins jumping from this location.
+         */
+        startJump: function startJump() {
+            this.jumpTime = 200;
+            this.jumping = true;
+        },
+        
+        /**
+         *  Ceases any jump force on this entity.
+         */
+        stopJump: function stopJump() {
+            this.jumpTime = 0;
+            this.jumping = false;
         }
     };
     
@@ -279,8 +312,8 @@
      *
      *  @extends {Entity}
      */
-     HutJumper.Model.Projectile = function Projectile(typeId, x, y, radius, velocity, lifeTime) {
-        HutJumper.Model.Entity.call(this, typeId, x, y, radius);
+     HutJumper.Model.Projectile = function Projectile(typeId, world, x, y, radius, velocity, lifeTime) {
+        HutJumper.Model.Entity.call(this, typeId, world, x, y, radius);
         this.velocity = velocity;
         this.lifeTime = lifeTime;
      };
@@ -304,7 +337,8 @@
     /**
      *  World class.
      */
-    HutJumper.Model.World = function World() {
+    HutJumper.Model.World = function World(gravity) {
+        this.gravity = gravity;
     }
     HutJumper.Model.World.prototype = {
         //class-level constants
@@ -381,9 +415,8 @@
      *  GameState class.
      */
     HutJumper.Model.GameState = function GameState(gravity) {
-        this.world = new HutJumper.Model.World();
-        this.pc = new HutJumper.Model.Entity('pc', 15, 15, 19);
-        this.pc.setAcceleration(gravity);
+        this.world = new HutJumper.Model.World(gravity);
+        this.pc = new HutJumper.Model.Entity('pc', this.world, 15, 15, 19);
         this.entities = [this.pc];
         this.selectedChar = 0;
     }
