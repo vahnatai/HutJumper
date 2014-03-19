@@ -41,8 +41,8 @@
             if (self.getMouseButton(event) === 0) {
                 var pc = self.gameState.getPC();
                 var sign = (pc.facingLeft ? -1 : 1);
-                var projectile = new HutJumper.Model.Projectile('fireball', self.gameState.getWorld(),
-                        pc.position.x, pc.position.y - 30, 16, new HutJumper.Model.Vector(sign*20, -10), 500);
+                var projectile = new HutJumper.Model.Projectile('fireball', self.gameState.getWorld(), pc,
+                        pc.position.x, pc.position.y - 30, 16, new HutJumper.Model.Vector(sign*20, -10).add(pc.velocity), 500);
                 projectile.setAcceleration(self.GRAV_EARTH);
                 self.gameState.addEntity(projectile);
             }

@@ -294,7 +294,9 @@
          *  Begins jumping from this location.
          */
         startJump: function startJump() {
-            this.jumpTime = 200;
+            if (this.jumpTime <= 0) {
+                this.jumpTime = 200;
+            }
             this.jumping = true;
         },
         
@@ -312,9 +314,10 @@
      *
      *  @extends {Entity}
      */
-     HutJumper.Model.Projectile = function Projectile(typeId, world, x, y, radius, velocity, lifeTime) {
+     HutJumper.Model.Projectile = function Projectile(typeId, world, source, x, y, radius, velocity, lifeTime) {
         HutJumper.Model.Entity.call(this, typeId, world, x, y, radius);
         this.velocity = velocity;
+        this.source = source;
         this.lifeTime = lifeTime;
      };
      extend(HutJumper.Model.Entity, HutJumper.Model.Projectile, {
