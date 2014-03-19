@@ -12,7 +12,11 @@
         this.charTiles = new Array();
         
         this.backgroundTile = this.loadImage("./grass.png");
-        this.fireball = this.loadImage("./mario-fireball.png");//store this in a better way somewhere else with other images
+        this.backgroundLayers = [
+            this.loadImage("./bg-L0.png"),
+            this.loadImage("./bg-L1.png")
+        ];
+        this.fireball = this.loadImage("./fireball.png");//store this in a better way somewhere else with other images
     };
     HutJumper.UI.Renderer.prototype = {
         FPS: 60,
@@ -99,13 +103,24 @@
             // round because pixels are discrete units; not rounding makes the image fuzzy
             var x = Math.round(gameState.getPC().position.x);
             var y = Math.round(gameState.getPC().position.y);
+            
             // static char, moving bg
             // translate before fill to offset the pattern,
             // then restore position
             context.save();
-            context.fillStyle = context.createPattern(this.backgroundTile, "repeat");
-            context.translate(-x, -y);
-            context.fillRect(x, y, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+            var parallaxX = Math.round(x/4);
+            var parallaxY = Math.round(y/4);
+            context.translate(-parallaxX, -parallaxY);
+            context.fillStyle = context.createPattern(this.backgroundLayers[0], "repeat");
+            context.fillRect(parallaxX, parallaxY, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+            context.restore();
+            
+            context.save();
+            context.translate(-x, -y - 100);
+            if (y + this.CANVAS_HEIGHT/2 > gameState.world.getMaxY() - this.backgroundLayers[1].height) {
+                context.fillStyle = context.createPattern(this.backgroundLayers[1], "repeat");
+                context.fillRect(x, y + 100 +(gameState.world.getMaxY() - this.backgroundLayers[1].height - y + this.CANVAS_HEIGHT/2), this.CANVAS_WIDTH, this.backgroundLayers[1].height);
+            }
             context.restore();
         },
 
