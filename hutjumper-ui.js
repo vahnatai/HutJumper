@@ -112,8 +112,8 @@
             
             // stars
             context.save();
-            var parallaxX = Math.round(x/4);
-            var parallaxY = Math.round(y/4);
+            var parallaxX = Math.round(x/8);
+            var parallaxY = Math.round(y/8);
             context.translate(-parallaxX, -parallaxY);
             context.fillStyle = context.createPattern(this.backgroundLayers[0], "repeat");
             context.fillRect(parallaxX, parallaxY, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
