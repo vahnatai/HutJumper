@@ -112,21 +112,31 @@
             
             // stars
             context.save();
-            var parallaxX = Math.round(x/8);
-            var parallaxY = Math.round(y/8);
+            var parallaxX = Math.round(x/10);
+            var parallaxY = Math.round(y/10);
             context.translate(-parallaxX, -parallaxY);
             context.fillStyle = context.createPattern(this.backgroundLayers[0], "repeat");
             context.fillRect(parallaxX, parallaxY, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
             context.restore();
             
-            //sea
-            parallaxX = Math.round(x/2);
-            parallaxY = Math.round(y/2);
+            //sea1
+            parallaxX = Math.round(x/3);
             context.save();
-            context.translate(-parallaxX, -parallaxY);
-            if (y + this.CANVAS_HEIGHT/2 > gameState.world.getMaxY() - (this.backgroundLayers[1].height + this.backgroundLayers[1].height)) {
+            context.translate(-parallaxX, -y);
+            if (y + this.CANVAS_HEIGHT/2 > gameState.world.getMaxY() - (2 * this.backgroundLayers[1].height - 30 + this.backgroundLayers[2].height)) {
                 context.fillStyle = context.createPattern(this.backgroundLayers[1], "repeat");
-                context.fillRect(parallaxX, parallaxY +(gameState.world.getMaxY() - (this.backgroundLayers[1].height + this.backgroundLayers[1].height) - y + this.CANVAS_HEIGHT/2),
+                context.fillRect(parallaxX, y +(gameState.world.getMaxY() - (2 * this.backgroundLayers[1].height - 30 + this.backgroundLayers[2].height) - y + this.CANVAS_HEIGHT/2),
+                        this.CANVAS_WIDTH, this.backgroundLayers[1].height);
+            }
+            context.restore();
+            
+            //sea2
+            parallaxX = Math.round(x/2);
+            context.save();
+            context.translate(-parallaxX, -y);
+            if (y + this.CANVAS_HEIGHT/2 > gameState.world.getMaxY() - (this.backgroundLayers[1].height + this.backgroundLayers[2].height)) {
+                context.fillStyle = context.createPattern(this.backgroundLayers[1], "repeat");
+                context.fillRect(parallaxX, y +(gameState.world.getMaxY() - (this.backgroundLayers[1].height + this.backgroundLayers[2].height) - y + this.CANVAS_HEIGHT/2),
                         this.CANVAS_WIDTH, this.backgroundLayers[1].height);
             }
             context.restore();
