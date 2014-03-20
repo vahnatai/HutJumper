@@ -11,7 +11,6 @@
         this.context = canvas.getContext("2d");
         this.charTiles = new Array();
         
-        this.backgroundTile = this.loadImage("./grass.png");
         this.backgroundLayers = [
             this.loadImage("./bg-L0.png"),
             this.loadImage("./bg-L1.png"),

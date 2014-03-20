@@ -56,7 +56,7 @@
                 self.gameState.addEntity(projectile);
             }
             if (self.getMouseButton(event) === 2) {
-                self.playAudio(self.AUDIO_COIN);
+                self.playAudio(self.AUDIO_BLOOP);
                 self.gameState.changeCurrentCharacter();
             }
         });
@@ -94,7 +94,7 @@
         RESTITUTION: 0.75,
         GRAV_EARTH: new HutJumper.Model.Vector(0, 9.81),
         
-        AUDIO_COIN: new Audio('mariocoin.wav'),
+        AUDIO_BLOOP: new Audio('bloop.wav'),
      
         /**
          *  Begin execution of the main game interval, which
