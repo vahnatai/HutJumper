@@ -187,10 +187,10 @@
                 var entity = ents[i];
                 var image = this.getImageByTypeId(entity.typeId);
                 var cameraPos = this.worldToCamera(gameState, entity.position);
-                if (cameraPos.x > 0 && cameraPos.x < this.CANVAS_WIDTH
-                        && cameraPos.y > 0 && cameraPos.y < this.CANVAS_HEIGHT) {
+                if (cameraPos.x + entity.radius > 0 && cameraPos.x - entity.radius < this.CANVAS_WIDTH
+                        && cameraPos.y + entity.radius > 0 && cameraPos.y - entity.radius < this.CANVAS_HEIGHT) {
                     
-                    context.drawImage(image, cameraPos.x, cameraPos.y,
+                    context.drawImage(image, cameraPos.x - entity.radius, cameraPos.y - entity.radius,
                         image.width, image.height);
                     
                 }
