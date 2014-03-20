@@ -5,6 +5,15 @@
     HutJumper.Engine = {};
     
     /**
+     *  ControlKey class.
+     */
+    HutJumper.Engine.ControlKey = function ControlKey(keycode) {
+        this.keycode = keycode;
+        this.pressed = false;
+    }
+    HutJumper.Engine.ControlKey.prototype = {};
+    
+    /**
      *  Controller class.
      */
      HutJumper.Engine.Controller = function Controller(document, canvas) {
@@ -66,6 +75,18 @@
         
         // last time model was updated
         this.lastTime = 0;
+        
+        
+        
+        this.KEYS = {
+            up: new HutJumper.Engine.ControlKey(87),        //W
+            down: new HutJumper.Engine.ControlKey(83),      //S
+            left:  new HutJumper.Engine.ControlKey(65),     //A
+            right:  new HutJumper.Engine.ControlKey(68),    //D
+            jump:  new HutJumper.Engine.ControlKey(32),     //SPACE
+            info:  new HutJumper.Engine.ControlKey(73)      //I
+        };
+        
      };
      HutJumper.Engine.Controller.prototype = {
         CONTROL_FORCE: 1,
@@ -74,37 +95,6 @@
         GRAV_EARTH: new HutJumper.Model.Vector(0, 9.81),
         
         AUDIO_COIN: new Audio('mariocoin.wav'),
-
-        /*
-         * TODO make a ControlKey(?) class, replace KEYS with an 
-         * object created in constructor instead of in the prototype
-         */
-        KEYS: {
-            up: {
-                keycode: 87, //w
-                pressed: false
-            },
-            down: {
-                keycode: 83, //s
-                pressed: false
-            },
-            left: {
-                keycode: 65, //a
-                pressed: false
-            },
-            right: {
-                keycode: 68, //d
-                pressed: false
-            },
-            jump: {
-                keycode: 32, //space
-                pressed: false
-            },
-            info: {
-                keycode: 73, //i
-                pressed: false
-            }
-        },
      
         /**
          *  Begin execution of the main game interval, which

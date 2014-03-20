@@ -1,6 +1,4 @@
 - refactor to MVC
-- ball -> entity
-- ControlKey?
 - move physics to controller? clean up ugly parameters in render/update methods
 - figure out entity radius vs width/height
 - consistent comments
