@@ -335,6 +335,22 @@
         }
      });
      
+     /**
+      * Hut class.
+      */
+     HutJumper.Model.Hut = function Hut(typeId, world, x, y, radius) {
+        HutJumper.Model.Entity.call(this, typeId, world, x, y, radius);
+        this.velocity = new HutJumper.Model.Vector(0,0);
+     }
+     extend(HutJumper.Model.Entity, HutJumper.Model.Hut, {
+        /**
+         *  No-op. Huts don't move.
+         */
+        stepPosition: function stepPosition(delta) {
+            //do nothing
+        }
+     });
+     
      
 
     /**

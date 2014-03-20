@@ -18,6 +18,7 @@
             this.loadImage("./bg-L2.png")
         ];
         this.fireball = this.loadImage("./fireball.png");//store this in a better way somewhere else with other images
+        this.hut = this.loadImage("./hut.png");
     };
     HutJumper.UI.Renderer.prototype = {
         FPS: 60,
@@ -184,12 +185,13 @@
             for (var i in ents) {
                 //TODO something with other entities
                 var entity = ents[i];
+                var image = this.getImageByTypeId(entity.typeId);
                 var cameraPos = this.worldToCamera(gameState, entity.position);
                 if (cameraPos.x > 0 && cameraPos.x < this.CANVAS_WIDTH
                         && cameraPos.y > 0 && cameraPos.y < this.CANVAS_HEIGHT) {
                     
-                    context.drawImage(this.fireball, cameraPos.x, cameraPos.y,
-                        this.fireball.width, this.fireball.height);
+                    context.drawImage(image, cameraPos.x, cameraPos.y,
+                        image.width, image.height);
                     
                 }
             }
@@ -263,6 +265,16 @@
             this.renderEntities(this.context, gameState);
             this.renderHUD(this.context, gameState, debugMode);
             //TODO
+        },
+        
+        getImageByTypeId: function getImageByTypeId(typeId) {
+            if (typeId === 'fireball') {
+                return this.fireball;
+            } else if (typeId === 'hut') {
+                return this.hut;
+            } else {
+                return null;
+            }
         },
         
         /**
