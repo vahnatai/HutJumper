@@ -1,4 +1,5 @@
 - refactor to MVC
+- js super calls instead of HutJumper.Model.Entity.prototype.blahblahblah
 - move physics to controller? clean up ugly parameters in render/update methods
 - figure out entity radius vs width/height
 - consistent comments
