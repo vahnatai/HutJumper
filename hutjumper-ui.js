@@ -14,7 +14,8 @@
         this.backgroundTile = this.loadImage("./grass.png");
         this.backgroundLayers = [
             this.loadImage("./bg-L0.png"),
-            this.loadImage("./bg-L1.png")
+            this.loadImage("./bg-L1.png"),
+            this.loadImage("./bg-L2.png")
         ];
         this.fireball = this.loadImage("./fireball.png");//store this in a better way somewhere else with other images
     };
@@ -104,9 +105,12 @@
             var x = Math.round(gameState.getPC().position.x);
             var y = Math.round(gameState.getPC().position.y);
             
-            // static char, moving bg
+            // Static character, moving background
+            // save,
             // translate before fill to offset the pattern,
             // then restore position
+            
+            // stars
             context.save();
             var parallaxX = Math.round(x/4);
             var parallaxY = Math.round(y/4);
@@ -115,11 +119,25 @@
             context.fillRect(parallaxX, parallaxY, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
             context.restore();
             
+            //sea
+            parallaxX = Math.round(x/2);
+            parallaxY = Math.round(y/2);
             context.save();
-            context.translate(-x, -y - 100);
-            if (y + this.CANVAS_HEIGHT/2 > gameState.world.getMaxY() - this.backgroundLayers[1].height) {
+            context.translate(-parallaxX, -parallaxY);
+            if (y + this.CANVAS_HEIGHT/2 > gameState.world.getMaxY() - (this.backgroundLayers[1].height + this.backgroundLayers[1].height)) {
                 context.fillStyle = context.createPattern(this.backgroundLayers[1], "repeat");
-                context.fillRect(x, y + 100 +(gameState.world.getMaxY() - this.backgroundLayers[1].height - y + this.CANVAS_HEIGHT/2), this.CANVAS_WIDTH, this.backgroundLayers[1].height);
+                context.fillRect(parallaxX, parallaxY +(gameState.world.getMaxY() - (this.backgroundLayers[1].height + this.backgroundLayers[1].height) - y + this.CANVAS_HEIGHT/2),
+                        this.CANVAS_WIDTH, this.backgroundLayers[1].height);
+            }
+            context.restore();
+            
+            //beach
+            context.save();
+            context.translate(-x, -y);
+            if (y + this.CANVAS_HEIGHT/2 > gameState.world.getMaxY() - this.backgroundLayers[2].height) {
+                context.fillStyle = context.createPattern(this.backgroundLayers[2], "repeat");
+                context.fillRect(x, y +(gameState.world.getMaxY() - this.backgroundLayers[2].height - y + this.CANVAS_HEIGHT/2),
+                        this.CANVAS_WIDTH, this.backgroundLayers[2].height);
             }
             context.restore();
         },
