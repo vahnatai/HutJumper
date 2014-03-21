@@ -288,8 +288,11 @@
         
         /**
          *  Convert world-relative coordinates to camera-relative coordinates.
+         *
+         *  TODO delete this copy of the function and use Camera.worldToCamera
+         *  instead.
          */
-        worldToCamera: function worldToCamera(gameState, worldPos){
+        worldToCamera: function worldToCamera(gameState, worldPos) {
             var cameraPos = worldPos.subtract(gameState.pc.position);
             cameraPos.x += this.CANVAS_WIDTH/2;
             cameraPos.y += this.CANVAS_HEIGHT/2;
@@ -297,6 +300,27 @@
         }
     };
     
+    /**
+     *  Camera class.
+     */
+    HutJumper.UI.Camera = function Camera(world, x, y) {
+        
+    }
+    HutJumper.UI.Camera.prototype = {
+        update: function update() {
+        },
+    
+        /**
+         *  Convert world-relative coordinates to camera-relative coordinates.
+         */
+        worldToCamera: function worldToCamera(gameState, worldPos) {
+            var cameraPos = worldPos.subtract(gameState.pc.position);
+            cameraPos.x += this.CANVAS_WIDTH/2;
+            cameraPos.y += this.CANVAS_HEIGHT/2;
+            return cameraPos;
+        }
+    };
+     
     /**
      *  CharacterTiles Class
      */
