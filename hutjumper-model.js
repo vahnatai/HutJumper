@@ -248,25 +248,42 @@
             var maxX = world.getMaxX();
             var minY = world.getMinY();
             var maxY = world.getMaxY();
+            
+            var collided = false;
         
             if ((this.position.x - this.radius <= minX) 
                     && (this.velocity.x < 0)) { 
                 this.velocity.x = -this.velocity.x * restitution;
                 this.position.x = minX + this.radius; 
+                collided = true;
             } else if ((this.position.x + this.radius >= maxX)
                     && (this.velocity.x > 0) ) {
                 this.velocity.x = -this.velocity.x * restitution;
                 this.position.x = maxX - this.radius;
+                collided = true;
             }
             if (this.position.y - this.radius <= minY
                     && (this.velocity.y < 0) ) {
                 this.velocity.y = -this.velocity.y * restitution;
                 this.position.y = minY + this.radius;
+                collided = true;
             } else if (this.position.y + this.radius >= maxY
                     && (this.velocity.y > 0) ) {
                 this.velocity.y = -this.velocity.y * restitution;
                 this.position.y = maxY - this.radius;
+                collided = true;
             }
+            
+            if (collided) {
+                this.onCollideBounds();
+            }
+        },
+        
+        /**
+         *  Event handling for collision with world bounds.
+         */
+        onCollideBounds: function onCollideBounds() {
+            //implement me
         },
         
         /**
@@ -315,7 +332,7 @@
      *  @extends {Entity}
      */
      HutJumper.Model.Projectile = function Projectile(typeId, world, source, x, y, radius, velocity, lifeTime) {
-        HutJumper.Model.Entity.call(this, typeId, world, x, y, radius);
+        this._super.call(this, typeId, world, x, y, radius);
         this.velocity = velocity;
         this.source = source;
         this.lifeTime = lifeTime;
@@ -326,7 +343,7 @@
          *  Updates expiration based on lifeTime.
          */
         stepPosition: function stepPosition(delta) {
-            HutJumper.Model.Entity.prototype.stepPosition.call(this, delta);
+            this._super.prototype.stepPosition.call(this, delta);
             if (this.lifeTime > 0) {
                 this.lifeTime -= delta;
             } else {
@@ -339,7 +356,7 @@
       * Hut class.
       */
      HutJumper.Model.Hut = function Hut(typeId, world, x, y, radius) {
-        HutJumper.Model.Entity.call(this, typeId, world, x, y, radius);
+        this._super.call(this, typeId, world, x, y, radius);
         this.velocity = new HutJumper.Model.Vector(0,0);
      }
      extend(HutJumper.Model.Entity, HutJumper.Model.Hut, {

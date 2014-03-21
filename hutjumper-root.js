@@ -24,13 +24,14 @@ function extend(base, sub, properties) {
     });
     if (typeof properties !== 'undefined' && properties) {
         for (propName in properties) {
-            sub.prototype[propName];
+            sub.prototype[propName] = properties[propName];
             Object.defineProperty(sub.prototype, propName, { 
                 enumerable: true, 
                 value: properties[propName]
             });
         }
     }
+    sub.prototype._super = base;
 }
 
 /**

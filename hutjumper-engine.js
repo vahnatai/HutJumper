@@ -46,14 +46,14 @@
                 key.pressed = false;
             }
         });
-        canvas.addEventListener("mouseup", function(event) {
+        canvas.addEventListener("mousedown", function(event) {
             if (self.getMouseButton(event) === 0) {
                 var pc = self.gameState.getPC();
                 var sign = (pc.facingLeft ? -1 : 1);
                 
                 self.playAudio(self.AUDIO_FIRE);
                 var projectile = new HutJumper.Model.Projectile('fireball', self.gameState.getWorld(), pc,
-                        pc.position.x, pc.position.y - 10, 8, new HutJumper.Model.Vector(sign*20, -10).add(pc.velocity), 500);
+                        pc.position.x, pc.position.y - 10, 8, new HutJumper.Model.Vector(sign*30, -30).add(pc.velocity), 500);
                 projectile.setAcceleration(self.GRAV_EARTH);
                 self.gameState.addEntity(projectile);
             }
@@ -98,6 +98,7 @@
         
         AUDIO_BLOOP: new Audio('bloop.wav'),
         AUDIO_FIRE: new Audio('fire.wav'),
+        AUDIO_JUMP: new Audio('jump.wav'),
      
         /**
          *  Begin execution of the main game interval, which
@@ -190,6 +191,7 @@
             }
             
             if (this.KEYS.jump.pressed && pc.isOnGround(this.gameState.getWorld()) && !pc.isJumping()) {
+                this.playAudio(this.AUDIO_JUMP);
                 pc.startJump();
             } else if (!this.KEYS.jump.pressed && pc.isJumping()) {
                 pc.stopJump();
