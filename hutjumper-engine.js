@@ -21,8 +21,8 @@
         var self = this;
         document.addEventListener("keydown", function(event) {
             //update which key is now pressed
-            for (k in self.KEYS) {
-                var key = self.KEYS[k];
+            for (k in self.keys) {
+                var key = self.keys[k];
                 if (event.keyCode === key.keycode) {
                     key.pressed = true;
                     break;
@@ -31,8 +31,8 @@
         });
         document.addEventListener("keyup", function(event) {
             //update which key is now not pressed
-            for (k in self.KEYS) {
-                var key = self.KEYS[k];
+            for (k in self.keys) {
+                var key = self.keys[k];
                 if (event.keyCode === key.keycode) {
                     key.pressed = false;
                     break;
@@ -41,8 +41,8 @@
         });
         window.addEventListener("blur", function(event) {
             //if game loses focus, reset all keys
-            for (k in self.KEYS) {
-                var key = self.KEYS[k];
+            for (k in self.keys) {
+                var key = self.keys[k];
                 key.pressed = false;
             }
         });
@@ -66,11 +66,16 @@
             return false;//prevent default menu on canvas
         };
         
+        //start pre-loading audio
+        this.AUDIO_BLOOP.load();
+        this.AUDIO_FIRE.load();
+        this.AUDIO_JUMP.load();
+        
         //init game state
         this.gameState = new HutJumper.Model.GameState(this.GRAV_EARTH);
         
         // init renderer
-        this.renderer = new HutJumper.UI.Renderer(canvas);
+        this.renderer = new HutJumper.UI.Renderer(canvas, new HutJumper.UI.EntityCamera(this.gameState.pc, canvas.width, canvas.height));
         
         // mode for debug HUD (press i to toggle)
         this.debugMode = false;
@@ -78,9 +83,7 @@
         // last time model was updated
         this.lastTime = 0;
         
-        
-        
-        this.KEYS = {
+        this.keys = {
             up: new HutJumper.Engine.ControlKey(87),        //W
             down: new HutJumper.Engine.ControlKey(83),      //S
             left:  new HutJumper.Engine.ControlKey(65),     //A
@@ -97,6 +100,7 @@
         GRAV_EARTH: new HutJumper.Model.Vector(0, 9.81),
         
         AUDIO_BLOOP: new Audio('bloop.wav'),
+        AUDIO_PICKUP: new Audio('coin.wav'),
         AUDIO_FIRE: new Audio('fire.wav'),
         AUDIO_JUMP: new Audio('jump.wav'),
      
@@ -182,22 +186,22 @@
         applyControls: function applyControls() {
             var pc = this.gameState.getPC();
             var controlV = new HutJumper.Model.Vector(
-                (this.KEYS.right.pressed - this.KEYS.left.pressed) * this.CONTROL_FORCE,
-                (this.KEYS.down.pressed - this.KEYS.up.pressed) * this.CONTROL_FORCE);
+                (this.keys.right.pressed - this.keys.left.pressed) * this.CONTROL_FORCE,
+                (this.keys.down.pressed - this.keys.up.pressed) * this.CONTROL_FORCE);
             if (controlV.x < 0) {
                 pc.facingLeft = true;
             } else if (controlV.x > 0) {
                 pc.facingLeft = false;
             }
             
-            if (this.KEYS.jump.pressed && pc.isOnGround(this.gameState.getWorld()) && !pc.isJumping()) {
+            if (this.keys.jump.pressed && pc.isOnGround(this.gameState.getWorld()) && !pc.isJumping()) {
                 this.playAudio(this.AUDIO_JUMP);
                 pc.startJump();
-            } else if (!this.KEYS.jump.pressed && pc.isJumping()) {
+            } else if (!this.keys.jump.pressed && pc.isJumping()) {
                 pc.stopJump();
             }
-            if (this.KEYS.info.pressed) {
-                this.KEYS.info.pressed = false;//toggle on press, disable holding to toggle forever
+            if (this.keys.info.pressed) {
+                this.keys.info.pressed = false;//toggle on press, disable holding to toggle forever
                 this.debugMode = !this.debugMode;
             }
             pc.setAcceleration(this.GRAV_EARTH.add(controlV));
