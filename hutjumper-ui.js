@@ -7,8 +7,9 @@
     /**
      *  Renderer class.
      */
-    HutJumper.UI.Renderer = function Renderer(canvas){
+    HutJumper.UI.Renderer = function Renderer(canvas, camera){
         this.context = canvas.getContext("2d");
+        this.camera = camera;
         this.charTiles = new Array();
         
         this.backgroundLayers = [
@@ -18,6 +19,7 @@
         ];
         this.fireball = this.loadImage("./fireball.png");//store this in a better way somewhere else with other images
         this.hut = this.loadImage("./hut.png");
+        
     };
     HutJumper.UI.Renderer.prototype = {
         FPS: 60,
@@ -102,8 +104,8 @@
          */
         renderBackground: function renderBackground(context, gameState) {
             // round because pixels are discrete units; not rounding makes the image fuzzy
-            var x = Math.round(gameState.getPC().position.x);
-            var y = Math.round(gameState.getPC().position.y);
+            var x = Math.round(this.camera.position.x + this.camera.width/2);
+            var y = Math.round(this.camera.position.y + this.camera.height/2);
             
             // Static character, moving background
             // save,
@@ -116,40 +118,44 @@
             var parallaxY = Math.round(y/10);
             context.translate(-parallaxX, -parallaxY);
             context.fillStyle = context.createPattern(this.backgroundLayers[0], "repeat");
-            context.fillRect(parallaxX, parallaxY, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+            context.fillRect(parallaxX, parallaxY, this.camera.width, this.camera.height);
             context.restore();
             
             //sea1
-            parallaxX = Math.round(x/3);
-            context.save();
-            context.translate(-parallaxX, -y);
-            if (y + this.CANVAS_HEIGHT/2 > gameState.world.getMaxY() - (2 * this.backgroundLayers[1].height - 30 + this.backgroundLayers[2].height)) {
+            var OFFSET = 30; //tuck this layer a bit under the next one
+            var crestY = gameState.world.getMaxY() - (2 * this.backgroundLayers[1].height + this.backgroundLayers[2].height) + OFFSET;
+            if (this.camera.containsY(crestY)) {
+                parallaxX = Math.round(x/3);
+                context.save();
+                context.translate(-parallaxX, -y);
                 context.fillStyle = context.createPattern(this.backgroundLayers[1], "repeat");
-                context.fillRect(parallaxX, y +(gameState.world.getMaxY() - (2 * this.backgroundLayers[1].height - 30 + this.backgroundLayers[2].height) - y + this.CANVAS_HEIGHT/2),
+                context.fillRect(parallaxX, this.camera.worldYToCamera(crestY) + y,
                         this.CANVAS_WIDTH, this.backgroundLayers[1].height);
+                context.restore();
             }
-            context.restore();
             
             //sea2
-            parallaxX = Math.round(x/2);
-            context.save();
-            context.translate(-parallaxX, -y);
-            if (y + this.CANVAS_HEIGHT/2 > gameState.world.getMaxY() - (this.backgroundLayers[1].height + this.backgroundLayers[2].height)) {
+            crestY = gameState.world.getMaxY() - (this.backgroundLayers[1].height + this.backgroundLayers[2].height);
+            if (this.camera.containsY(crestY)) {
+                parallaxX = Math.round(x/2);
+                context.save();
+                context.translate(-parallaxX, -y);
                 context.fillStyle = context.createPattern(this.backgroundLayers[1], "repeat");
-                context.fillRect(parallaxX, y +(gameState.world.getMaxY() - (this.backgroundLayers[1].height + this.backgroundLayers[2].height) - y + this.CANVAS_HEIGHT/2),
+                context.fillRect(parallaxX, crestY + this.camera.height/2,
                         this.CANVAS_WIDTH, this.backgroundLayers[1].height);
+                context.restore();
             }
-            context.restore();
             
             //beach
-            context.save();
-            context.translate(-x, -y);
-            if (y + this.CANVAS_HEIGHT/2 > gameState.world.getMaxY() - this.backgroundLayers[2].height) {
+            crestY = gameState.world.getMaxY() - this.backgroundLayers[2].height;
+            if (this.camera.containsY(crestY)) {
+                context.save();
+                context.translate(-x, -y);
                 context.fillStyle = context.createPattern(this.backgroundLayers[2], "repeat");
-                context.fillRect(x, y +(gameState.world.getMaxY() - this.backgroundLayers[2].height - y + this.CANVAS_HEIGHT/2),
+                context.fillRect(x, crestY + this.camera.height/2,
                         this.CANVAS_WIDTH, this.backgroundLayers[2].height);
+                context.restore();
             }
-            context.restore();
         },
 
         /**
@@ -159,24 +165,31 @@
          *  @param gameState {GameState}        State to render.
          */
         renderForeground: function renderForeground(context, gameState) {
+            var x = Math.round(this.camera.position.x + this.camera.width/2);
+            var y = Math.round(this.camera.position.y + this.camera.height/2);
+        
             //if they are visible from this position, render bounds
             var pc = gameState.getPC();
             var world = gameState.getWorld();
-            if (pc.position.x - this.CANVAS_WIDTH/2 <= world.getMinX()) {
+            if (this.camera.containsX(world.getMinX())) {
                 context.fillStyle = this.BOUNDS_COLOR;
-                context.fillRect(world.getMinX() - pc.position.x, 0, this.CANVAS_WIDTH/2, this.CANVAS_HEIGHT);
+                context.fillRect(Math.round(this.camera.worldXToCamera(world.getMinX()) - this.camera.width/2),
+                        0, Math.round(this.camera.width/2), this.camera.height);
             }
-            if (pc.position.x + this.CANVAS_WIDTH/2 >= world.getMaxX()) {
+            if (this.camera.containsX(world.getMaxX())) {
                 context.fillStyle = this.BOUNDS_COLOR;
-                context.fillRect(world.getMaxX() - pc.position.x + this.CANVAS_WIDTH/2, 0, this.CANVAS_WIDTH/2, this.CANVAS_HEIGHT);
+                context.fillRect(Math.round(this.camera.worldXToCamera(world.getMaxX())),
+                        0, Math.round(this.camera.width/2), this.camera.height);
             }
-            if (pc.position.y - this.CANVAS_HEIGHT/2 <= world.getMinY()) {
+            if (this.camera.containsY(world.getMinY())) {
                 context.fillStyle = this.BOUNDS_COLOR;
-                context.fillRect(0, world.getMinY() - pc.position.y, this.CANVAS_WIDTH, this.CANVAS_HEIGHT/2);
+                context.fillRect(0, Math.round(this.camera.worldYToCamera(world.getMinY()) - this.camera.height/2),
+                        this.camera.width, this.camera.height/2);
             }
-            if (pc.position.y + this.CANVAS_WIDTH/2 >= world.getMaxY()) {
+            if (this.camera.containsY(world.getMaxY())) {
                 context.fillStyle = this.BOUNDS_COLOR;
-                context.fillRect(0, world.getMaxY() - pc.position.y + this.CANVAS_HEIGHT/2, this.CANVAS_WIDTH, this.CANVAS_HEIGHT/2);
+                context.fillRect(0, Math.round(this.camera.worldYToCamera(world.getMaxY())),
+                        this.camera.width, this.camera.height/2);
             }
         },
         
@@ -192,16 +205,12 @@
             var ents = gameState.getEntities();
             ents.splice(ents.indexOf(pc), 1);
             for (var i in ents) {
-                //TODO something with other entities
                 var entity = ents[i];
                 var image = this.getImageByTypeId(entity.typeId);
-                var cameraPos = this.worldToCamera(gameState, entity.position);
-                if (cameraPos.x + entity.radius > 0 && cameraPos.x - entity.radius < this.CANVAS_WIDTH
-                        && cameraPos.y + entity.radius > 0 && cameraPos.y - entity.radius < this.CANVAS_HEIGHT) {
-                    
-                    context.drawImage(image, cameraPos.x - entity.radius, cameraPos.y - entity.radius,
-                        image.width, image.height);
-                    
+                if ( (this.camera.containsX(entity.position.x + entity.radius) || this.camera.containsX(entity.position.x - entity.radius))
+                        && (this.camera.containsY(entity.position.y + entity.radius) || this.camera.containsY(entity.position.y - entity.radius))) {
+                    var cameraPos = this.camera.worldToCamera(entity.position);
+                    context.drawImage(image, cameraPos.x - entity.radius, cameraPos.y - entity.radius, image.width, image.height);
                 }
             }
         },
@@ -230,7 +239,8 @@
                 position += "Walk";
             }
             currentFrame = tiles[position];
-            context.drawImage(currentFrame, this.CANVAS_WIDTH/2 - currentFrame.width/2, this.CANVAS_HEIGHT/2 - currentFrame.height/2, currentFrame.width, currentFrame.height);
+            var cameraPos = this.camera.worldToCamera(pc.position);
+            context.drawImage(currentFrame, Math.round(cameraPos.x - currentFrame.width/2), Math.round(cameraPos.y - currentFrame.height/2), currentFrame.width, currentFrame.height);
         },
 
         /**
@@ -269,6 +279,7 @@
          *  @param debugMode {boolean}          Debug flag.
          */
         render: function render(gameState, debugMode) {
+            this.camera.update();
             this.renderBackground(this.context, gameState);
             this.renderForeground(this.context, gameState);
             this.renderEntities(this.context, gameState);
@@ -303,26 +314,79 @@
     /**
      *  Camera class.
      */
-    HutJumper.UI.Camera = function Camera(world, x, y) {
-        
+    HutJumper.UI.Camera = function Camera(world, x, y, width, height) {
+        this.world = world;
+        this.position = new HutJumper.Model.Vector(x, y); //top left corner of view
+        this.width = width;
+        this.height = height;
     }
     HutJumper.UI.Camera.prototype = {
+        /**
+         *  Called on the Camera once per tick. Override to
+         *  update camera attributes.
+         */
         update: function update() {
+            //implement me to update coordinates per-tick
+        },
+        
+        //TODO IMPLEMENT AND COMMENT
+        containsX: function containsX(x) {
+            return (x > this.position.x) && (x < this.position.x + this.width);
+        },
+        containsY: function containsY(y) {
+            return (y > this.position.y) && (y < this.position.y + this.height);
+        },
+        containsPoint: function containsPoint(position) {
+            return this.containsX(position.x) && this.containsY(position.y);
         },
     
         /**
          *  Convert world-relative coordinates to camera-relative coordinates.
          */
-        worldToCamera: function worldToCamera(gameState, worldPos) {
-            var cameraPos = worldPos.subtract(gameState.pc.position);
-            cameraPos.x += this.CANVAS_WIDTH/2;
-            cameraPos.y += this.CANVAS_HEIGHT/2;
-            return cameraPos;
+        worldToCamera: function worldToCamera(worldPos) {
+            return worldPos.subtract(this.position);
+        },
+        
+        worldXToCamera: function worldToCamera(worldX) {
+            return worldX - this.position.x;
+        },
+        
+        worldYToCamera: function worldToCamera(worldY) {
+            return worldY - this.position.y;
+        },
+        
+        /**
+         *  Get the center point of this camera's view, in world coordinates.
+         */
+        getCenter: function getCenterInWorld() {
+            return new HutJumper.Model.Vector(
+                    Math.round(this.position.x + this.width/2),
+                    Math.round(this.position.y + this.height/2)
+                );
         }
     };
+    
+    /**
+     *  EntityCamera class.
+     */
+     HutJumper.UI.EntityCamera = function EntityCamera(entity, width, height) {
+        this._super.call(this, entity.world, Math.round(entity.position.x - width/2), Math.round(entity.position.y - height/2), width, height);
+        this.entity = entity;
+     };
+     extend(HutJumper.UI.Camera, HutJumper.UI.EntityCamera, {
+        /**
+         *  Follow the entity.
+         */
+        update: function update() {
+            this.position.x = Math.round(this.entity.position.x - this.width/2);
+            this.position.y = Math.round(this.entity.position.y - this.height/2);
+        }
+     });
+     
+     
      
     /**
-     *  CharacterTiles Class
+     *  CharacterTiles class.
      */
     HutJumper.UI.CharacterTiles = function CharacterTiles(left, leftWalk, rightWalk, right) {
         this.left = left;
@@ -330,5 +394,4 @@
         this.right = right;
         this.rightWalk = rightWalk;
     };
-    HutJumper.UI.CharacterTiles.prototype = {};
 })();
