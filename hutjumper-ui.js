@@ -378,8 +378,8 @@
          *  Follow the entity.
          */
         update: function update() {
-            this.position.x = Math.round(this.entity.position.x - this.width/2);
-            this.position.y = Math.round(this.entity.position.y - this.height/2);
+            this.position.x = Math.max(this.world.getMinX(), Math.min(this.entity.position.x, this.world.getMaxX() - this.width/2) - this.width/2);
+            this.position.y = Math.max(this.world.getMinY(), Math.min(this.entity.position.y, this.world.getMaxY() - this.height/2) - this.height/2);
         }
      });
      
