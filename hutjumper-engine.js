@@ -53,7 +53,7 @@
                 
                 self.playAudio(self.AUDIO_FIRE);
                 var projectile = new HutJumper.Model.Projectile('fireball', self.gameState.getWorld(), pc,
-                        pc.position.x, pc.position.y - 10, 8, new HutJumper.Model.Vector(sign*30, -30).add(pc.velocity), 500);
+                        pc.position.x, pc.position.y - 10, 8, new HutJumper.Model.Vector(sign*30 + pc.velocity.x, -30), 500);
                 projectile.setAcceleration(self.GRAV_EARTH);
                 self.gameState.addEntity(projectile);
             }
