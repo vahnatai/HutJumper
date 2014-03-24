@@ -97,7 +97,7 @@
         CONTROL_FORCE: 1,
         FRICTION_C: 0.15,
         RESTITUTION: 0.75,
-        GRAV_EARTH: new HutJumper.Model.Vector(0, 9.81),
+        GRAV_EARTH: new HutJumper.Model.Vector(0, 1),//9.81),
         
         AUDIO_BLOOP: new Audio('bloop.wav'),
         AUDIO_PICKUP: new Audio('coin.wav'),

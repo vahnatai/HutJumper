@@ -115,7 +115,7 @@
     }
     HutJumper.Model.Entity.prototype = {
         mass: 1,
-        JUMP_FORCE: 22,
+        JUMP_FORCE: 3.5,
         
         /**
          *  Sets the acceleration of this entity.
