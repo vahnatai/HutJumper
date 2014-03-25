@@ -200,19 +200,20 @@
          *  @param gameState {GameState}        State to render.
          */
         renderEntities: function renderEntities(context, gameState) {
-            this.renderPC(context, gameState);
             var pc = gameState.getPC();
             var ents = gameState.getEntities();
             ents.splice(ents.indexOf(pc), 1);
             for (var i in ents) {
                 var entity = ents[i];
                 var image = this.getImageByTypeId(entity.typeId);
-                if ( (this.camera.containsX(entity.position.x + entity.radius) || this.camera.containsX(entity.position.x - entity.radius))
-                        && (this.camera.containsY(entity.position.y + entity.radius) || this.camera.containsY(entity.position.y - entity.radius))) {
-                    var cameraPos = this.camera.worldToCamera(entity.position);
-                    context.drawImage(image, cameraPos.x - entity.radius, cameraPos.y - entity.radius, image.width, image.height);
+                var bShape = entity.getBoundingShape();
+                if ( (this.camera.containsX(bShape.position.x + bShape.getWidth()/2) || this.camera.containsX(bShape.position.x - bShape.getWidth()/2))
+                        && (this.camera.containsY(bShape.position.y + bShape.getWidth()/2) || this.camera.containsY(entity.position.y - bShape.getHeight()/2))) {
+                    var cameraPos = this.camera.worldToCamera(bShape.position);
+                    context.drawImage(image, Math.round(cameraPos.x - bShape.getWidth()/2), Math.round(cameraPos.y - bShape.getWidth()/2), image.width, image.height);
                 }
             }
+            this.renderPC(context, gameState);
         },
 
         /**
