@@ -215,7 +215,6 @@
          */
         update: function update(deltaTime) {
             //TODO
-            this.applyControls();
             var pc = this.gameState.getPC();
             var ents = this.gameState.getEntities();
             
@@ -232,8 +231,20 @@
                 
                 ent.stepPosition(deltaTime);
                 ent.collideBounds(this.gameState.getWorld(), this.RESTITUTION, deltaTime);
-                ent.stepVelocity(this.FRICTION_C, deltaTime);
+                for (var j in ents) {
+					if (i === j) {
+						continue; //skip self-collision
+					}
+					var ent2 = ents[j];
+					if (ent2.isColliding(ent)) {
+						ent2.collide(ent, this.RESTITUTION, deltaTime);
+					}
+				}
+				ent.stepVelocity(this.FRICTION_C, deltaTime);
+				
             }
+			
+            this.applyControls();
             
         },
         

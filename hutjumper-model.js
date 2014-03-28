@@ -185,17 +185,6 @@
          */
         isColliding: function isColliding(that) {
             return HutJumper.Model.Shape.intersect(this.getBoundingShape(), that.getBoundingShape());
-            // if (!(that instanceof Entity)) {
-                // return false;
-            // }
-            // if (this == that) {
-                // return false;
-            // }
-            // var delta = this.position.subtract(that.position);
-            // var distance = delta.getLength();
-            // var range = this.radius + that.radius;
-            
-            // return (distance <= range);
         },
         
         /**
@@ -205,7 +194,7 @@
          *  @param {Entity} that            The other Entity.
          *  @param {number} restitution     The coefficient of restitution.
          */
-        collide: function collide(that, restitution) {
+        collide: function collide(that, restitution, deltaTime) {
             var delta = this.position.subtract(that.position);
             var d = delta.getLength();
             // minimum translation distance
@@ -227,9 +216,9 @@
             var vn = v.dotProduct(mtd.normalized());
             
             // sphere intersecting but moving away from each other already
-            if (vn > 0.0){
+            if (vn > 0.0) {
                 //alert("Bump1: " + vn);
-            return;
+				return;
             }
             //alert("Bump2: " + vn);
             // collision impulse
@@ -375,6 +364,12 @@
         this.velocity = new HutJumper.Model.Vector(0,0);
     }
     extend(HutJumper.Model.Entity, HutJumper.Model.Hut, {
+        collide: function collide(that, restitution, delta) {
+			this._super.prototype.collide.call(this, that, restitution, delta);
+			that.velocity.x = 0;
+			that.velocity.y = 0;
+        },
+		
         /**
          *  No-op. Huts don't move.
          */
