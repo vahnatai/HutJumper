@@ -366,8 +366,9 @@
     extend(HutJumper.Model.Entity, HutJumper.Model.Hut, {
         collide: function collide(that, restitution, delta) {
 			this._super.prototype.collide.call(this, that, restitution, delta);
-			that.velocity.x = 0;
-			that.velocity.y = 0;
+			if (that.velocity.y > 0) {
+				that.velocity.y = 0;
+			}
         },
 		
         /**

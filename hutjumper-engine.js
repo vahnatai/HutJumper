@@ -231,6 +231,7 @@
                 
                 ent.stepPosition(deltaTime);
                 ent.collideBounds(this.gameState.getWorld(), this.RESTITUTION, deltaTime);
+				ent.stepVelocity(this.FRICTION_C, deltaTime);
                 for (var j in ents) {
 					if (i === j) {
 						continue; //skip self-collision
@@ -240,7 +241,6 @@
 						ent2.collide(ent, this.RESTITUTION, deltaTime);
 					}
 				}
-				ent.stepVelocity(this.FRICTION_C, deltaTime);
 				
             }
 			
