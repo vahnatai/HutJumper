@@ -100,7 +100,7 @@
     HutJumper.Model.Entity = function Entity(typeId, world, shape, velocity) {
         this.typeId = typeId;
         this.world = world;
-        this.position = shape.position;
+        this.position = new HutJumper.Model.Vector(shape.position.x + shape.getWidth()/2, shape.position.y + shape.getHeight()/2);
         this.velocity = valueOrDefault(velocity, new HutJumper.Model.Vector());
         this.acceleration = new HutJumper.Model.Vector();
         this.facingLeft = true;
@@ -117,7 +117,8 @@
          *  Returns the bounding shape.
          */
         getBoundingShape: function getBoundingShape() {
-            this.shape.position = this.position;
+            this.shape.position.x = Math.round(this.position.x - this.shape.getWidth()/2);
+            this.shape.position.y = Math.round(this.position.y - this.shape.getHeight()/2);
             return this.shape;
         },
         
@@ -166,14 +167,13 @@
         
         /**
          *  Returns true if the entity is standing on solid 
-         *  ground in the given World, false otherwise.
+         *  ground, false otherwise.
          *
-         *  @param {World} world    The world to check against.
          *  @returns {boolean}      The status of the Entity's groundedness.
          */
-        isOnGround: function isOnGround(world) {
+        isOnGround: function isOnGround() {
             var bShape = this.getBoundingShape();
-            return bShape.position.y + bShape.getHeight()/2 >= world.getMaxY() - world.getGroundHeight();
+            return bShape.position.y + bShape.getHeight() >= this.world.getMaxY() - this.world.getGroundHeight();
         },
         
         /**
@@ -251,20 +251,20 @@
                 // console.debug(bShape, maxY);
                 // alert(this);
             }
-            if (bShape.position.x - bShape.getWidth()/2 <= minX && this.velocity.x < 0) { 
+            if (bShape.position.x <= minX && this.velocity.x < 0) { 
                 this.velocity.x = -this.velocity.x * restitution;
                 this.position.x = minX + bShape.getWidth()/2; 
                 collided = true;
-            } else if (bShape.position.x + bShape.getWidth()/2 >= maxX && this.velocity.x > 0) {
+            } else if (bShape.position.x + bShape.getWidth() >= maxX && this.velocity.x > 0) {
                 this.velocity.x = -this.velocity.x * restitution;
                 this.position.x = maxX - bShape.getWidth()/2;
                 collided = true;
             }
-            if (bShape.position.y - bShape.getHeight()/2 <= minY && this.velocity.y < 0) {
+            if (bShape.position.y <= minY && this.velocity.y < 0) {
                 this.velocity.y = -this.velocity.y * restitution;
                 this.position.y = minY + bShape.getHeight()/2;
                 collided = true;
-            } else if (bShape.position.y  + bShape.getHeight()/2 >= maxY && this.velocity.y > 0) {
+            } else if (bShape.position.y + bShape.getHeight() >= maxY && this.velocity.y > 0) {
                 //alert('yes!');
                 this.velocity.y = -this.velocity.y * restitution;
                 this.position.y = maxY - bShape.getHeight()/2;
@@ -326,7 +326,7 @@
      *  Creature class. Rectangular bounds.
      */
     HutJumper.Model.Creature = function Creature(typeId, world, x, y, width, height, velocity){
-        this._super.call(this, typeId, world, new HutJumper.Model.RectShape(x, y, width, height), velocity);
+        this._super.call(this, typeId, world, new HutJumper.Model.RectShape(x - width/2, y - height/2, width, height), velocity);
     }
     extend(HutJumper.Model.Entity, HutJumper.Model.Creature, {});
     
@@ -337,12 +337,18 @@
      */
     HutJumper.Model.Projectile = function Projectile(typeId, world, source, x, y, radius, velocity, lifeTime) {
         this._super.call(this, typeId, world, new HutJumper.Model.CircleShape(x, y, radius));
-        this.velocity = velocity;
+		this.velocity = velocity;
         this.source = source;
         this.lifeTime = lifeTime;
-    };
+	};
     extend(HutJumper.Model.Entity, HutJumper.Model.Projectile, {
-     
+		isColliding: function isColliding(that) {
+			if (this.source === that) {
+				return false;
+			}
+			return this._super.prototype.isColliding.call(this, that);
+		},
+	
         /**
          *  Updates expiration based on lifeTime.
          */
@@ -353,21 +359,26 @@
             } else {
                 this.expire();
             }
+			console.debug(this.velocity.y);
         }
     });
      
      /**
       * Hut class.
       */
-    HutJumper.Model.Hut = function Hut(world, x, y, radius) {
-        this._super.call(this, 'hut', world, new HutJumper.Model.RectShape(x, y, 130, 147));
+    HutJumper.Model.Hut = function Hut(world, x, y) {
+        this._super.call(this, 'hut', world, new HutJumper.Model.RectShape(
+				x - this.HUT_WIDTH/2, y - this.HUT_HEIGHT/2, this.HUT_WIDTH, this.HUT_HEIGHT));
         this.velocity = new HutJumper.Model.Vector(0,0);
     }
     extend(HutJumper.Model.Entity, HutJumper.Model.Hut, {
+		HUT_WIDTH: 130,
+		HUT_HEIGHT: 147,
         collide: function collide(that, restitution, delta) {
 			this._super.prototype.collide.call(this, that, restitution, delta);
-			if (that.velocity.y > 0) {
+			if (that.velocity.y > 0 && !that.isOnGround()) {
 				that.velocity.y = 0;
+				that.position.y = this.position.y - this.getBoundingShape().getHeight()/2;
 			}
         },
 		
@@ -387,10 +398,10 @@
     HutJumper.Model.World = function World(gravity) {
         this.gravity = gravity;
         
-        var HUT_SPACING = 200;
+        var HUT_SPACING = 400;
         this.worldEntities = [];
-        for (var i = this.getMinX(); i < this.getMaxX(); i += HUT_SPACING) {
-            var hut = new HutJumper.Model.Hut(this, i, this.getMaxY() - this.getGroundHeight(), 80);
+        for (var i = this.getMinX() + HUT_SPACING; i < this.getMaxX(); i += HUT_SPACING) {
+            var hut = new HutJumper.Model.Hut(this, i, this.getMaxY() - this.getGroundHeight());
             this.worldEntities.push(hut);
         }
     }
@@ -501,8 +512,8 @@
         }
         if (shape1.constructor === HutJumper.Model.RectShape && shape2.constructor === HutJumper.Model.RectShape) {
             //rectangle-rectangle intersection test
-            return !(shape1.position.x > shape2.position.x + shape2.width/2 || shape1.position.x + shape1.width/2 < shape2.position.x 
-                    || shape1.position.y > shape2.position.y + shape2.height/2 || shape1.position.y + shape1.height/2 < shape2.position.y);
+			return (Math.abs(shape1.position.x - shape2.position.x) < shape1.getWidth()/2 + shape2.getWidth()/2)
+					&& (Math.abs(shape1.position.y - shape2.position.y) < shape1.getHeight()/2 + shape2.getHeight()/2);
         }
         var circle, rectangle;
         if (shape1.constructor === HutJumper.Model.CircleShape && shape2.constructor === HutJumper.Model.RectShape) {

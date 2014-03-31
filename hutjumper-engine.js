@@ -53,7 +53,7 @@
                 
                 self.playAudio(self.AUDIO_FIRE);
                 var projectile = new HutJumper.Model.Projectile('fireball', self.gameState.getWorld(), pc,
-                        pc.position.x, pc.position.y - 10, 8, new HutJumper.Model.Vector(sign*30 + pc.velocity.x, -30), 500);
+                        pc.position.x, pc.position.y - 5, 8, new HutJumper.Model.Vector(sign*30 + pc.velocity.x, -20), 500);
                 projectile.setAcceleration(self.GRAV_EARTH);
                 self.gameState.addEntity(projectile);
             }
@@ -194,7 +194,7 @@
                 pc.facingLeft = false;
             }
             
-            if (this.keys.jump.pressed && pc.isOnGround(this.gameState.getWorld()) && !pc.isJumping()) {
+            if (this.keys.jump.pressed && pc.isOnGround() && !pc.isJumping()) {
                 this.playAudio(this.AUDIO_JUMP);
                 pc.startJump();
             } else if (!this.keys.jump.pressed && pc.isJumping()) {
@@ -237,15 +237,15 @@
 						continue; //skip self-collision
 					}
 					var ent2 = ents[j];
-					if (ent2.isColliding(ent)) {
-						ent2.collide(ent, this.RESTITUTION, deltaTime);
+					if (this.renderer.camera.containsShape(ent2.getBoundingShape())) {
+						if (ent2.isColliding(ent)) {
+							ent2.collide(ent, this.RESTITUTION, deltaTime);
+						}
 					}
 				}
 				
             }
-			
-            this.applyControls();
-            
+		    this.applyControls();
         },
         
         /**

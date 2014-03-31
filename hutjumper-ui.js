@@ -199,7 +199,7 @@
          *  @param context {canvas 2d context}  Context to render to.
          *  @param gameState {GameState}        State to render.
          */
-        renderEntities: function renderEntities(context, gameState) {
+        renderEntities: function renderEntities(context, gameState, debugMode) {
             var pc = gameState.getPC();
             var ents = gameState.getEntities();
             ents.splice(ents.indexOf(pc), 1);
@@ -207,13 +207,16 @@
                 var entity = ents[i];
                 var image = this.getImageByTypeId(entity.typeId);
                 var bShape = entity.getBoundingShape();
-                if ( (this.camera.containsX(bShape.position.x + bShape.getWidth()/2) || this.camera.containsX(bShape.position.x - bShape.getWidth()/2))
-                        && (this.camera.containsY(bShape.position.y + bShape.getWidth()/2) || this.camera.containsY(entity.position.y - bShape.getHeight()/2))) {
+                if (this.camera.containsShape(bShape)) {
                     var cameraPos = this.camera.worldToCamera(bShape.position);
-                    context.drawImage(image, Math.round(cameraPos.x - bShape.getWidth()/2), Math.round(cameraPos.y - bShape.getWidth()/2), image.width, image.height);
-                }
+                    context.drawImage(image, Math.round(cameraPos.x), Math.round(cameraPos.y), image.width, image.height);
+					if (debugMode) {
+						context.strokeStyle = '#FF0000';
+						context.strokeRect(Math.round(cameraPos.x), Math.round(cameraPos.y), bShape.getWidth(), bShape.getHeight());
+					}
+				}
             }
-            this.renderPC(context, gameState);
+            this.renderPC(context, gameState, debugMode);
         },
 
         /**
@@ -222,7 +225,7 @@
          *  @param context {canvas 2d context}  Context to render to.
          *  @param gameState {GameState}        State to render.
          */
-        renderPC: function renderPC(context, gameState) {
+        renderPC: function renderPC(context, gameState, debugMode) {
             //static char, moving bg
             var pc = gameState.getPC();
             var world = gameState.getWorld();
@@ -242,7 +245,13 @@
             currentFrame = tiles[position];
             var cameraPos = this.camera.worldToCamera(pc.position);
             context.drawImage(currentFrame, Math.round(cameraPos.x - currentFrame.width/2), Math.round(cameraPos.y - currentFrame.height/2), currentFrame.width, currentFrame.height);
-        },
+        
+			if (debugMode) {
+				var bShape = pc.getBoundingShape(); 
+				context.strokeStyle = '#FF0000';
+				context.strokeRect(Math.round(cameraPos.x - bShape.getWidth()/2), Math.round(cameraPos.y - bShape.getHeight()/2), bShape.getWidth(), bShape.getHeight());
+			}
+		},
 
         /**
          *  Render the heads-up display layer to the canvas.
@@ -283,7 +292,7 @@
             this.camera.update();
             this.renderBackground(this.context, gameState);
             this.renderForeground(this.context, gameState);
-            this.renderEntities(this.context, gameState);
+            this.renderEntities(this.context, gameState, debugMode);
             this.renderHUD(this.context, gameState, debugMode);
             //TODO
         },
@@ -340,6 +349,10 @@
         containsPoint: function containsPoint(position) {
             return this.containsX(position.x) && this.containsY(position.y);
         },
+		containsShape: function containsShape(shape) {
+			return (this.containsX(shape.position.x) || this.containsX(shape.position.x + shape.width))
+					&& (this.containsY(shape.position.y) || this.containsY(shape.position.y + shape.height));
+		},
     
         /**
          *  Convert world-relative coordinates to camera-relative coordinates.
