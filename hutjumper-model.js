@@ -247,10 +247,6 @@
             var collided = false;
             
             var bShape = this.getBoundingShape();
-            if (this.typeId === 'pc' && bShape.position.y > maxY) {
-                // console.debug(bShape, maxY);
-                // alert(this);
-            }
             if (bShape.position.x <= minX && this.velocity.x < 0) { 
                 this.velocity.x = -this.velocity.x * restitution;
                 this.position.x = minX + bShape.getWidth()/2; 
