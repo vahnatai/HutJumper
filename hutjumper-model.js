@@ -375,10 +375,9 @@
 		HUT_WIDTH: 130,
 		HUT_HEIGHT: 147,
         collide: function collide(that, restitution, delta) {
-			this._super.prototype.collide.call(this, that, restitution, delta);
 			if (that.velocity.y > 0 && !that.isOnGround()) {
-				that.velocity.y = 0;
-				that.position.y = this.position.y - this.getBoundingShape().getHeight()/2;
+                that.velocity.y = 0;
+				that.position.y = this.getBoundingShape().position.y - that.getBoundingShape().getHeight()/2;
 			}
         },
 		
@@ -512,8 +511,8 @@
         }
         if (shape1.constructor === HutJumper.Model.RectShape && shape2.constructor === HutJumper.Model.RectShape) {
             //rectangle-rectangle intersection test
-			return (Math.abs(shape1.position.x - shape2.position.x) < shape1.getWidth()/2 + shape2.getWidth()/2)
-					&& (Math.abs(shape1.position.y - shape2.position.y) < shape1.getHeight()/2 + shape2.getHeight()/2);
+            return !(shape1.position.x > shape2.position.x + shape2.getWidth() || shape1.position.x + shape1.getWidth() < shape2.position.x 
+                    || shape1.position.y > shape2.position.y + shape2.getHeight() || shape1.position.y + shape1.getHeight() < shape2.position.y);
         }
         var circle, rectangle;
         if (shape1.constructor === HutJumper.Model.CircleShape && shape2.constructor === HutJumper.Model.RectShape) {

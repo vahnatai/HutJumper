@@ -1,7 +1,6 @@
-- refactor to MVC
-- js super calls instead of HutJumper.Model.Entity.prototype.blahblahblah
 - move physics to controller? clean up ugly parameters in render/update methods
-- figure out entity radius vs width/height
 - consistent comments
 - full window resolution (canvas width 100%, render based on px width)
 - fullscreen mode?
+- fix projectile grav?
+- make proper use of delta times
