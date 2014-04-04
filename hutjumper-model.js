@@ -107,11 +107,12 @@
         this.expired = false;
         this.jumping = false;
         this.jumpTime = 0;
+        this.landed = false;
         this.shape = shape;
     }
     HutJumper.Model.Entity.prototype = {
         mass: 1,
-        JUMP_FORCE: 3.5,
+        JUMP_FORCE: 3.25,
         
         /**
          *  Returns the bounding shape.
@@ -173,7 +174,7 @@
          */
         isOnGround: function isOnGround() {
             var bShape = this.getBoundingShape();
-            return bShape.position.y + bShape.getHeight() >= this.world.getMaxY() - this.world.getGroundHeight();
+            return this.landed || bShape.position.y + bShape.getHeight() >= this.world.getMaxY() - this.world.getGroundHeight();
         },
         
         /**
@@ -307,6 +308,7 @@
                 this.jumpTime = 200;
             }
             this.jumping = true;
+            this.landed = false;
         },
         
         /**
@@ -350,10 +352,10 @@
          */
         stepPosition: function stepPosition(delta) {
             this._super.prototype.stepPosition.call(this, delta);
-            if (this.lifeTime > 0) {
-                this.lifeTime -= delta;
-            } else {
+            if (this.lifeTime <= 0 || this.isOnGround()) {
                 this.expire();
+            } else {
+                this.lifeTime -= delta;
             }
 			console.debug(this.velocity.y);
         }
@@ -370,10 +372,14 @@
     extend(HutJumper.Model.Entity, HutJumper.Model.Hut, {
 		HUT_WIDTH: 130,
 		HUT_HEIGHT: 147,
+        MOUNT_THRESHOLD_PX: 10,
         collide: function collide(that, restitution, delta) {
-			if (that.velocity.y > 0 && !that.isOnGround()) {
+            if (that.velocity.y > 0 
+                    && that.position.y + (that.getBoundingShape().getHeight()/2) < this.getBoundingShape().position.y + this.MOUNT_THRESHOLD_PX) {
                 that.velocity.y = 0;
 				that.position.y = this.getBoundingShape().position.y - that.getBoundingShape().getHeight()/2;
+                // that.stopJump();
+                that.landed = true;
 			}
         },
 		
@@ -393,7 +399,7 @@
     HutJumper.Model.World = function World(gravity) {
         this.gravity = gravity;
         
-        var HUT_SPACING = 400;
+        var HUT_SPACING = 350;
         this.worldEntities = [];
         for (var i = this.getMinX() + HUT_SPACING; i < this.getMaxX(); i += HUT_SPACING) {
             var hut = new HutJumper.Model.Hut(this, i, this.getMaxY() - this.getGroundHeight());

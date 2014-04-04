@@ -277,6 +277,7 @@
                 context.fillText("x: " + x + ", y: " + y, 20, 20);
                 context.fillText("velX: " + velX + ", velY: " + velY, 20, 50);
                 context.fillText("accX: " + accX + ", accY: " + accY, 20, 80);
+                context.fillText("landed: " + pc.landed + ", jumping: " + pc.jumping, 20, 110);
                 context.restore();
             }
         },
@@ -392,6 +393,7 @@
          *  Follow the entity.
          */
         update: function update() {
+            var cameraEntPos = this.worldToCamera(this.entity.position);
             this.position.x = Math.max(this.world.getMinX(), Math.min(this.entity.position.x, this.world.getMaxX() - this.width/2) - this.width/2);
             this.position.y = Math.max(this.world.getMinY(), Math.min(this.entity.position.y, this.world.getMaxY() - this.height/2) - this.height/2);
         }
