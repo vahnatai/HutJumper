@@ -100,7 +100,7 @@
         GRAV_EARTH: new HutJumper.Model.Vector(0, 1),//9.81),
         
         AUDIO_BLOOP: new Audio('bloop.wav'),
-        AUDIO_PICKUP: new Audio('coin.wav'),
+        AUDIO_COIN: new Audio('coin.wav'),
         AUDIO_FIRE: new Audio('fire.wav'),
         AUDIO_JUMP: new Audio('jump.wav'),
      

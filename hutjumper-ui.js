@@ -19,6 +19,7 @@
         ];
         this.fireball = this.loadImage("./fireball.png");//store this in a better way somewhere else with other images
         this.hut = this.loadImage("./hut.png");
+        this.coin = this.loadImage("./coin.png");
         
     };
     HutJumper.UI.Renderer.prototype = {
@@ -303,6 +304,8 @@
                 return this.fireball;
             } else if (typeId === 'hut') {
                 return this.hut;
+            } else if (typeId === 'coin') {
+                return this.coin;
             } else {
                 return null;
             }

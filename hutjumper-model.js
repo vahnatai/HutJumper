@@ -361,9 +361,9 @@
         }
     });
      
-     /**
-      * Hut class.
-      */
+    /**
+     * Hut class.
+     */
     HutJumper.Model.Hut = function Hut(world, x, y) {
         this._super.call(this, 'hut', world, new HutJumper.Model.RectShape(
 				x - this.HUT_WIDTH/2, y - this.HUT_HEIGHT/2, this.HUT_WIDTH, this.HUT_HEIGHT));
@@ -390,6 +390,28 @@
             //do nothing
         }
     });
+    
+    /**
+     * Coin(?) class. Objective objects to be found by players.
+     */
+    HutJumper.Model.Coin = function Coin(world, x, y) {
+        this._super.call(this, 'coin', world, new HutJumper.Model.CircleShape(
+				x, y, this.COIN_RADIUS));
+        this.velocity = new HutJumper.Model.Vector(0,0);
+    }
+    extend(HutJumper.Model.Entity, HutJumper.Model.Coin, {
+		COIN_RADIUS: 6,
+        collide: function collide(that, restitution, delta) {
+            
+        },
+		
+        /**
+         *  No-op. Coins don't move.
+         */
+        stepPosition: function stepPosition(delta) {
+            //do nothing
+        }
+    });
      
      
 
@@ -402,6 +424,8 @@
         var HUT_SPACING = 350;
         this.worldEntities = [];
         for (var i = this.getMinX() + HUT_SPACING; i < this.getMaxX(); i += HUT_SPACING) {
+            var coin = new HutJumper.Model.Coin(this, i, this.getMaxY() - this.getGroundHeight() - 200);
+            this.worldEntities.push(coin);
             var hut = new HutJumper.Model.Hut(this, i, this.getMaxY() - this.getGroundHeight());
             this.worldEntities.push(hut);
         }
@@ -410,29 +434,6 @@
         //class-level constants
         CELL_WIDTH_PX: 50,
         CELL_HEIGHT_PX: 50,
-        
-        data: [
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-        ],
         
         /**
          *  Get the height from the max y value to the ground surface.
@@ -453,7 +454,6 @@
          */
         getMaxX: function getMaxX() {
             return 20000;
-            // return this.data[0].length * this.CELL_WIDTH_PX;
         },
         
         /**
@@ -468,7 +468,6 @@
          */
         getMaxY: function getMaxY() {
             return 2000;
-            //return this.data.length * this.CELL_WIDTH_PX;
         },
         
         /**
